@@ -37,7 +37,8 @@ async function ensureHijakGitIgnored(projectDir) {
   if (!(await fs.pathExists(gitIgnorePath))) return
 
   const ignored = await loadText(gitIgnorePath)
-  if (!ignored.match(/(^|\n)[.]hijak(\n|$)/g)) {
+  //! TODO Make this more intelligent
+  if (!ignored.includes(".hijak")) {
     // Need to add .hijak to .gitignore
     saveText(gitIgnorePath, ignored.trim() + "\n.hijak/\n")
   }
