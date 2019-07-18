@@ -39,31 +39,37 @@ export default function syncDirectories(srcPath, buildPath) {
       return
     }
 
-    switch (event) {
-      case "add":
-        debug("creating %s", toPath)
-        await fs.copyFile(fromPath, toPath)
-        break
-      case "change":
-        debug("updating src %s", toPath)
-        await fs.copyFile(fromPath, toPath)
-        break
-      case "addDir":
-        debug("adding directory %s", toPath)
-        if (await fs.pathExists(toPath)) {
-          await fs.remove(toPath)
-        }
-        fs.mkdir(toPath)
-        break
-      case "unlink":
-        debug("removing %s", toPath)
-        fs.remove(toPath)
-        break
-      case "unlinkDir":
-        debug("removing directory %s", toPath)
-        if (await fs.pathExists(toPath)) {
-          await fs.remove(toPath)
-        }
+    try {
+      switch (event) {
+        case "add":
+          debug("creating %s", toPath)
+          await fs.ensureDir(path.dirname(toPath))
+          await fs.copyFile(fromPath, toPath)
+          break
+        case "change":
+          await fs.ensureDir(path.dirname(toPath))
+          debug("updating src %s", toPath)
+          await fs.copyFile(fromPath, toPath)
+          break
+        case "addDir":
+          debug("adding directory %s", toPath)
+          if (await fs.pathExists(toPath)) {
+            await fs.remove(toPath)
+          }
+          fs.mkdir(toPath)
+          break
+        case "unlink":
+          debug("removing %s", toPath)
+          fs.remove(toPath)
+          break
+        case "unlinkDir":
+          debug("removing directory %s", toPath)
+          if (await fs.pathExists(toPath)) {
+            await fs.remove(toPath)
+          }
+      }
+    } catch (err) {
+      console.error(err.message)
     }
   })
 

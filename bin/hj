@@ -1,3 +1,4 @@
 #!/usr/bin/env node
 
-require("../dist/hj.js")
+// Call out to the compiled bin
+require("../dist/hj.js").default()

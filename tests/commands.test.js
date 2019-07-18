@@ -1,10 +1,11 @@
 const os = require("os")
 const path = require("path")
 const fs = require("fs-extra")
+const minimist = require("minimist")
 const { loadJson, saveJson } = require("../src/lib/load-file")
 const { buildExpectedPath } = require("../src/lib/target-utils")
 
-const hijack = require("../src/commands/hijack")
+const install = require("../src/commands/install")
 const run = require("../src/commands/run")
 
 const randomInt = () => Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
@@ -36,10 +37,16 @@ describe("commands", () => {
 
     testProject = await buildTestProject("test1")
 
-    await hijack.action(TEMPLATE_URL, testProject)
+    await install.action(
+      minimist(
+        process.argv
+          .slice(0, 2)
+          .concat(["install", "--project", testProject, TEMPLATE_URL])
+      )
+    )
   }, 60000)
 
-  describe("hijack", () => {
+  describe("install", () => {
     it("can be run on a simple npm project", async () => {
       const pkg = await loadJson(path.resolve(testProject, "package.json"))
       expect(pkg.hijak.repo).toEqual(TEMPLATE_URL)
