@@ -33,12 +33,12 @@
     "@pika/plugin-standard-pkg": "^0.3.15",
     "@types/jest": "^24.0.15",
     "babel-jest": "^24.7.1",
-    "chokidar": "^3.0.2",
     "jest": "^24.8.0",
     "rollup": "^1.17.0"
   },
   "dependencies": {
     "ansi-colors": "^4.1.1",
+    "chokidar": "^3.0.2",
     "collect-console": "^1.0.1",
     "command-line-usage": "^6.0.2",
     "debug": "^4.1.1",
