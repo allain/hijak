@@ -36,7 +36,7 @@ export default function syncDirectories(srcPath, buildPath) {
       now - lastFromChange < 100 &&
       now - lastToChange < 100
     ) {
-      debug("bailing on cyclic propagation")
+      debug("bailing on cyclic propagation %s => %s", fromPath, toPath)
       return
     }
 

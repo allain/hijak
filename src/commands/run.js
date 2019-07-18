@@ -4,10 +4,9 @@ import which from "../lib/which"
 import exec from "../lib/exec"
 import ansicolors from "ansi-colors"
 import { loadJson } from "../lib/load-file"
-import { buildExpectedPath } from "../lib/target-utils"
 import usageBuilder from "command-line-usage"
 import Debug from "debug"
-
+import sleep from "../lib/sleep"
 import syncDir from "../lib/sync-dirs"
 import ensureHijacked from "../lib/ensure-hijacked"
 
@@ -97,7 +96,10 @@ export async function action(args, argv) {
   const stopSync = syncDir(process.cwd(), buildDir)
   const result = await exec(npmPath, ["run", commandName, ...npmArgs], {
     cwd: buildDir
-  }).catch(err => {})
+  })
+
+  debug("waiting for last changes to sync")
+  await sleep(500)
 
   await stopSync()
 
