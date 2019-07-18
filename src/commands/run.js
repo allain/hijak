@@ -29,6 +29,8 @@ export async function action(args, argv) {
     ? path.resolve(process.cwd(), args.project)
     : process.cwd()
 
+  await fs.ensureDir(path.resolve(projectDir, "node_modules"))
+
   const commandName = args._[3]
   if (!commandName) {
     console.error(ansicolors.red("command not given"))
@@ -54,12 +56,7 @@ export async function action(args, argv) {
   )
 
   const missingTypeDefs = typeDefs.filter(([depName]) => {
-    try {
-      require.resolve(depName, { paths: [projectDir] })
-      return false
-    } catch (err) {
-      return true
-    }
+    return !fs.pathExistsSync(path.join(projectDir, "node_modules", depName))
   })
 
   if (missingTypeDefs.length) {
@@ -68,7 +65,7 @@ export async function action(args, argv) {
     )
 
     await exec(npmPath, ["install", "--silent", "--no-save", ...depArgs], {
-      cwd: buildDir
+      cwd: projectDir
     })
   }
 
