@@ -11,6 +11,7 @@ export default function syncDirectories(srcPath, buildPath) {
 
   // Start watching the build directory for things that the build is modifying and push them to the srcPath
   const watcher = chokidar.watch([srcPath, buildPath], {
+    alwaysStat: true,
     ignoreInitial: true,
     ignored: "node_modules"
   })

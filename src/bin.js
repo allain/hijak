@@ -7,7 +7,7 @@ import usageBuilder from "command-line-usage"
 import * as install from "./commands/install"
 import * as run from "./commands/run"
 
-import { loadJsonSync } from "./lib/load-file"
+import { loadJsonSync, loadJson } from "./lib/load-file"
 
 const pkg = loadJsonSync(path.resolve(__dirname, "..", "package.json"))
 const commands = { install, run }
@@ -47,7 +47,7 @@ export function usage(args) {
   console.log(
     usageBuilder([
       {
-        header: commandName,
+        header: commandName + "v" + pkg.version,
         content: "A tool for hijacking build pipelines for the greater good."
       },
       {
