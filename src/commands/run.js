@@ -39,6 +39,7 @@ export async function action(args, argv) {
   }
 
   debug("running npm command %s", commandName)
+
   const buildDir = await ensureHijacked(projectDir)
 
   const escapePos = argv.indexOf("--")

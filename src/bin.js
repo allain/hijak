@@ -52,7 +52,7 @@ export function usage(args) {
       },
       {
         header: "Usage",
-        content: `$$ ${commandName} <command> [options]`
+        content: `\$ ${commandName} <command> [options]`
       },
       {
         header: "Commands",
@@ -64,7 +64,7 @@ export function usage(args) {
           },
           {
             name: "run",
-            "synopsis ": "Runs an npm script using the hijacked project."
+            synopsis: "Runs an npm script using the hijacked project."
           }
         ]
       }

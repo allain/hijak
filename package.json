@@ -1,15 +1,15 @@
 {
   "name": "hijak",
-  "version": "0.1.7",
+  "version": "0.1.6",
   "bin": {
-    "hj": "./bin/hj"
+    "hijak": "./bin/hijak"
   },
   "description": "A tool for hijacking another npm module's build system.",
   "main": "dist/index.cjs.js",
   "esnext": "dist/index.esm.js",
   "scripts": {
     "build": "npm run build:cjs && npm run build:esm && npm run build:bin",
-    "build:bin": "rollup src/bin.js -o dist/hj.js -f cjs",
+    "build:bin": "rollup src/bin.js -o dist/bin.js -f cjs",
     "build:cjs": "rollup src/index.js -o dist/index.cjs.js -f cjs",
     "build:esm": "rollup src/index.js -o dist/index.esm.js -f esm",
     "test": "jest --config jest.config.js --runInBand"
