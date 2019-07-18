@@ -1,5 +1,5 @@
 {
-  "name": "hijack",
+  "name": "hijak",
   "version": "0.1.0",
   "bin": {
     "hj": "./bin/hj"
@@ -15,8 +15,8 @@
     "test": "jest --config jest.config.js --runInBand"
   },
   "keywords": [
-    "hijack",
-    "builds"
+    "npm",
+    "build"
   ],
   "files": [
     "README.md",

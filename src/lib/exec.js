@@ -1,7 +1,7 @@
 import execa from "execa"
 import Debug from "debug"
 
-const debug = Debug("hijack:exec")
+const debug = Debug("hijak:exec")
 
 export default function exec(command, args, options = {}) {
   debug("running", command, ...args, options)

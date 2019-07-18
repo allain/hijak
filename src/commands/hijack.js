@@ -3,7 +3,7 @@ import * as path from "path"
 import ensureHijacked from "../lib/ensure-hijacked"
 import Debug from "debug"
 
-const debug = Debug("hijack")
+const debug = Debug("hijak")
 
 export default function setup(program) {
   program
@@ -23,12 +23,12 @@ export async function action(target, projectDir = process.cwd(), options) {
   if (projectDir[0] === ".")
     projectDir = path.resolve(process.cwd(), projectDir)
 
-  const pkgJsonPath = path.resolve(projectDir || process.cwd(), "package.json")
+  const pkgJsonPath = path.resolve(projectDir, "package.json")
   const pkg = await loadJson(pkgJsonPath)
 
   debug("adding hijack config into package.json")
-  pkg.hijack = pkg.hijack || {}
-  pkg.hijack.repo = target
+  pkg.hijak = pkg.hijak || {}
+  pkg.hijak.repo = target
   await saveJson(pkgJsonPath, pkg)
 
   debug("hijacking", target, "for", projectDir)

@@ -1,17 +1,17 @@
-# hijack
+# hijak
 
-An attempt to hijack another project's npm scripts for the greater good.
+An experiment to hijack another project's npm scripts for the greater good.
 
 ## Usage
 
-Step 1 - install hijack
+Step 1 - install hijak
 
 ```bash
 # globally
-npm install --global hijack
+npm install --global hijak
 
 # or as a dependency of the sample project
-npm install --save-dev hijack
+npm install --save-dev hijak
 ```
 
 Step 2 - create a simple project that will hijack another one

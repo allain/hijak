@@ -6,14 +6,14 @@ import exec from "../lib/exec"
 import which from "../lib/which"
 import Debug from "debug"
 
-const debug = Debug("hijack")
+const debug = Debug("hijak")
 
 export default async function ensureHijacked(projectDir) {
   const pkg = await loadJson(path.resolve(projectDir, "package.json"))
-  const target = pkg.hijack.repo
+  const target = pkg.hijak.repo
   if (!target) throw new Error("project has not been hijacked yet")
 
-  debug("checking for installed hijack target %s", target)
+  debug("checking for installed hijak target %s", target)
   const targetDir = buildExpectedPath(target, projectDir)
   if (await fs.pathExists(targetDir)) {
     debug("found %s", target)

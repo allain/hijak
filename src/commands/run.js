@@ -9,15 +9,14 @@ import Debug from "debug"
 import syncDir from "../lib/sync-dirs"
 import ensureHijacked from "../lib/ensure-hijacked"
 
-const debug = Debug("hijack:run")
+const debug = Debug("hijak:run")
 
 export default async function setup(program) {
   program.command("run <command>").action(action)
 }
 
-export async function action(commandName, ...args) {
+export async function action(commandName, projectDir = process.cwd(), ...args) {
   debug("running command %s", commandName)
-  const projectDir = process.cwd()
   const targetDir = await ensureHijacked(projectDir)
 
   const { parent } = args[args.length - 1]
@@ -34,7 +33,7 @@ export async function action(commandName, ...args) {
     cwd: targetDir
   })
 
-  stopSync()
+  await stopSync()
 }
 
 const ignoredRegex = /^(node_modules|package.json|package-lock.json|[.].*)$/

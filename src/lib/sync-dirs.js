@@ -3,19 +3,19 @@ import fs from "fs-extra"
 import path from "path"
 
 import Debug from "debug"
-const debug = Debug("hijack:sync-dirs")
+const debug = Debug("hijak:sync-dirs")
 
 export default function syncDirectories(srcPath, buildPath) {
   // used to keep infinite update loops from happening
   const lastChanges = {}
 
   // Start watching the build directory for things that the build is modifying and push them to the srcPath
-  const buidlWatcher = chokidar.watch([srcPath, buildPath], {
+  const watcher = chokidar.watch([srcPath, buildPath], {
     ignoreInitial: true,
     ignored: "node_modules"
   })
 
-  buidlWatcher.on("all", async (event, fromPath) => {
+  watcher.on("all", async (event, fromPath) => {
     const isSrcChange = !fromPath.startsWith(buildPath)
     const relativePath = path.relative(
       isSrcChange ? srcPath : buildPath,
@@ -67,13 +67,8 @@ export default function syncDirectories(srcPath, buildPath) {
     }
   })
 
-  const srcWatcher = chokidar.watch(srcPath, {
-    ignoreInitial: true,
-    ignored: "node_modules"
-  })
-
-  return () => {
-    buidlWatcher.close()
-    srcWatcher.close()
+  return async () => {
+    debug("stopping directory watcher")
+    watcher.close()
   }
 }
