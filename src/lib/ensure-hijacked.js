@@ -13,7 +13,7 @@ export default async function ensureHijacked(projectDir) {
   const target = pkg.hijak.repo
   if (!target) throw new Error("project has not been hijacked yet")
 
-  await ensureHijakGitIgnored(projectDir)
+  // await ensureHijakGitIgnored(projectDir)
 
   debug("checking for installed hijak target %s", target)
   const targetDir = buildExpectedPath(target, projectDir)
@@ -32,6 +32,8 @@ export default async function ensureHijacked(projectDir) {
 
   return targetDir
 }
+
+// TODO this is spamming
 async function ensureHijakGitIgnored(projectDir) {
   const gitIgnorePath = path.join(projectDir, ".gitignore")
   if (!(await fs.pathExists(gitIgnorePath))) return
