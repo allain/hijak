@@ -50,7 +50,7 @@ export async function action(args, argv) {
   const npmPath = await which("npm")
   const result = await exec(npmPath, ["run", commandName, ...npmArgs], {
     cwd: buildDir
-  })
+  }).catch(err => {})
 
   await stopSync()
 }

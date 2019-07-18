@@ -59,11 +59,10 @@ describe("commands", () => {
     })
   })
 
-  /*describe.skip("run", () => {
+  describe.skip("run", () => {
     it("can invoke scripts on hijacked project", async () => {
-      await run.action(minimist("test", testProject, {
-        parent: { rawArgs: ["node", "blah", "test"] }
-      })
+      const argv = process.argv.slice(0, 2).concat("run", "test")
+      await run.action(minimist(argv), argv)
     })
-  })*/
+  })
 })
