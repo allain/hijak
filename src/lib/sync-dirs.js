@@ -3,7 +3,6 @@ import fs from "fs-extra"
 import path from "path"
 
 import Debug from "debug"
-import { BADFAMILY } from "dns"
 const debug = Debug("hijack:sync-dirs")
 
 export default function syncDirectories(srcPath, buildPath) {
