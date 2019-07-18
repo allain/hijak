@@ -15,6 +15,10 @@ export async function saveJson(filePath, obj) {
   await fs.writeFile(filePath, JSON.stringify(obj, null, 2))
 }
 
+export async function loadText(filePath) {
+  return await fs.readFile(filePath, "utf-8")
+}
+
 export async function saveText(filePath, content) {
   await fs.ensureDir(path.dirname(filePath))
   await fs.writeFile(filePath, content)
