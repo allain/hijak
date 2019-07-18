@@ -2,7 +2,7 @@ const os = require("os")
 const path = require("path")
 const fs = require("fs-extra")
 const minimist = require("minimist")
-const { loadJson, saveJson } = require("../src/lib/load-file")
+const { loadJson, saveJson, saveText } = require("../src/lib/load-file")
 const { buildExpectedPath } = require("../src/lib/target-utils")
 
 const install = require("../src/commands/install")
@@ -16,8 +16,34 @@ async function buildTestProject(name) {
 
   await saveJson(path.join(randomPath, "package.json"), {
     name,
-    version: "0.1.0"
+    version: "0.1.0",
+    dependencies: {
+      "lodash.tolower": "^4.1.2"
+    }
   })
+
+  await saveText(
+    path.join(randomPath, "src", "index.js"),
+    `
+    const toLower = require('lodash.tolower')
+
+    module.exports = function lower(name) {
+      return toLower(name)
+    }
+  `
+  )
+
+  await saveText(
+    path.join(randomPath, "tests", "yippee.test.js"),
+    `
+    const lower = require('../src/index.js')
+   describe('testing', () => {
+     it("can use deps from target", () => {
+       expect(lower('BOB')).toEqual('bob')
+     })
+   }) 
+  `
+  )
 
   return randomPath
 }
@@ -59,10 +85,13 @@ describe("commands", () => {
     })
   })
 
-  describe.skip("run", () => {
+  describe.only("run", () => {
     it("can invoke scripts on hijacked project", async () => {
-      const argv = process.argv.slice(0, 2).concat("run", "test")
+      const argv = process.argv
+        .slice(0, 2)
+        .concat("run", "test", "--project", testProject)
+
       await run.action(minimist(argv), argv)
-    })
+    }, 30000)
   })
 })

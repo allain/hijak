@@ -23,6 +23,8 @@ export default async function setup(program) {
  * @param {string[]} argv
  */
 export async function action(args, argv) {
+  const npmPath = await which("npm")
+
   const projectDir = args.project
     ? path.resolve(process.cwd(), args.project)
     : process.cwd()
@@ -45,9 +47,57 @@ export async function action(args, argv) {
     console.error(err.message)
   })
 
+  const buildPkg = await loadJson(path.resolve(buildDir, "package.json"))
+
+  const typeDefs = Object.entries(buildPkg.devDependencies || {}).filter(
+    ([name]) => name.match(/^@types\//)
+  )
+
+  const missingTypeDefs = typeDefs.filter(([depName]) => {
+    try {
+      require.resolve(depName, { paths: [projectDir] })
+      return false
+    } catch (err) {
+      return true
+    }
+  })
+
+  if (missingTypeDefs.length) {
+    const depArgs = missingTypeDefs.map(
+      ([depName, semver]) => `${depName}@${semver}`
+    )
+
+    await exec(npmPath, ["install", "--silent", "--no-save", ...depArgs], {
+      cwd: buildDir
+    })
+  }
+
+  const pkg = await loadJson(path.resolve(projectDir, "package.json"))
+
+  const missingBuildDeps = Object.entries({
+    ...(pkg.dependencies || {}),
+    ...(pkg.devDependencies || {})
+  }).filter(([depName, semver]) => {
+    try {
+      require.resolve(depName, { paths: [buildDir] })
+      return false
+    } catch (err) {
+      return true
+    }
+  })
+
+  if (missingBuildDeps.length) {
+    const depArgs = missingBuildDeps.map(
+      ([depName, semver]) => `${depName}@${semver}`
+    )
+
+    await exec(npmPath, ["install", "--silent", "--no-save", ...depArgs], {
+      cwd: buildDir
+    })
+  }
+
   const stopSync = syncDir(process.cwd(), buildDir)
 
-  const npmPath = await which("npm")
   const result = await exec(npmPath, ["run", commandName, ...npmArgs], {
     cwd: buildDir
   }).catch(err => {})
