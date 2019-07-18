@@ -25,7 +25,7 @@ npm init -y
 Step 3 - Perform the hijack
 
 ```
-hj git@github.com:allain/template-npm-project.git
+hj install git@github.com:allain/template-npm-project.git
 ```
 
 Step 4 - Profit
@@ -35,5 +35,5 @@ All of the hijacked npm run scripts are now available to you through the `hj` to
 For example, with the template given above, the command below will run jest on the project created above.
 
 ```bash
-hj test -- --watchAll
+hj run test -- --watchAll
 ```
