@@ -104,7 +104,8 @@ export async function action(args, argv) {
   await stopSync()
 
   // @ts-ignore
-  return result.code === 0
+
+  return result.exitCode === 0
 }
 
 const ignoredRegex = /^(node_modules|package.json|package-lock.json|[.].*)$/

@@ -31,6 +31,8 @@ export default async function main(argv = process.argv) {
   const success = await command.action(args, argv)
   if (success === false) {
     process.exit(1)
+  } else {
+    process.exit(0)
   }
 
   // console.log(JSON.stringify(args))
