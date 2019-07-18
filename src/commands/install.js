@@ -34,6 +34,8 @@ export async function action(args) {
   debug("hijacking", target, "for", projectDir)
 
   await ensureHijacked(projectDir)
+
+  return true
 }
 
 export function usage(args) {

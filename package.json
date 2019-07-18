@@ -8,10 +8,7 @@
   "main": "dist/index.cjs.js",
   "esnext": "dist/index.esm.js",
   "scripts": {
-    "build": "npm run build:cjs && npm run build:esm && npm run build:bin",
-    "build:bin": "rollup src/bin.js -o dist/bin.js -f cjs",
-    "build:cjs": "rollup src/index.js -o dist/index.cjs.js -f cjs",
-    "build:esm": "rollup src/index.js -o dist/index.esm.js -f esm",
+    "build": "hijak run build",
     "test": "hijak run test"
   },
   "keywords": [
@@ -25,17 +22,6 @@
   ],
   "author": "Allain Lalonde <allain.lalonde@gmail.com>",
   "license": "ISC",
-  "devDependencies": {
-    "@babel/core": "^7.4.3",
-    "@babel/preset-env": "^7.4.3",
-    "@pika/plugin-build-node": "^0.3.15",
-    "@pika/plugin-build-web": "^0.3.15",
-    "@pika/plugin-standard-pkg": "^0.3.15",
-    "@types/jest": "^24.0.15",
-    "babel-jest": "^24.7.1",
-    "jest": "^24.8.0",
-    "rollup": "^1.17.0"
-  },
   "dependencies": {
     "ansi-colors": "^4.1.1",
     "chokidar": "^3.0.2",

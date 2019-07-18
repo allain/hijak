@@ -29,7 +29,7 @@ export default async function main(argv = process.argv) {
   }
 
   const success = await command.action(args, argv)
-  if (!success) {
+  if (success === false) {
     process.exit(1)
   }
 

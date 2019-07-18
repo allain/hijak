@@ -95,12 +95,14 @@ export async function action(args, argv) {
   }
 
   const stopSync = syncDir(process.cwd(), buildDir)
-
   const result = await exec(npmPath, ["run", commandName, ...npmArgs], {
     cwd: buildDir
   }).catch(err => {})
 
   await stopSync()
+
+  // @ts-ignore
+  return result.code === 0
 }
 
 const ignoredRegex = /^(node_modules|package.json|package-lock.json|[.].*)$/
