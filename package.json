@@ -41,6 +41,7 @@
     "ansi-colors": "^4.1.1",
     "collect-console": "^1.0.1",
     "command-line-usage": "^6.0.2",
+    "debug": "^4.1.1",
     "execa": "^2.0.3",
     "fs-extra": "^8.1.0",
     "minimist": "^1.2.0",
