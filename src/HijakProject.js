@@ -7,7 +7,7 @@ import which from "./lib/which"
 import exec from "./lib/exec"
 import sleep from "./lib/sleep"
 import syncDirs from "./lib/sync-dirs"
-import hashTarget from "./lib/hash-target"
+import hashString from "./lib/hash-string"
 import { EventEmitter } from "events"
 
 const debug = Debug("hijak")
@@ -31,7 +31,7 @@ export default class HijakProject extends EventEmitter {
     return path.join(
       os.tmpdir(),
       ".hijak",
-      `project-${hashTarget(this.projectDir)}`
+      `project-${hashString(this.projectDir)}`
     )
     // return path.join(this.projectDir, "node_modules", ".hijak")
   }

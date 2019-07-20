@@ -25,9 +25,7 @@ describe("HijakProject", () => {
   it("exposes buildPath", () =>
     withTestProject(projectDir => {
       const hp = new HijakProject(projectDir)
-      expect(hp.buildPath).toEqual(
-        path.join(projectDir, "node_modules", ".hijak")
-      )
+      expect(hp.buildPath).toMatch(/.*\/[.]hijak\/project-.*/)
     }))
 
   it("supports install/uninstall", () =>
@@ -50,7 +48,7 @@ describe("HijakProject", () => {
 
   it.todo("failing scripts return the exit code of the failure")
 
-  it.only("failing scripts return false", () =>
+  it("failing scripts return false", () =>
     withTestProject(async projectDir => {
       const hp = new HijakProject(projectDir)
       await hp.install(TEST_GIT_URL)
