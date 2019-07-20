@@ -1,6 +1,6 @@
 {
   "name": "hijak",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "bin": {
     "hj": "./dist/index.cjs.js",
     "hijak": "./dist/index.cjs.js"
