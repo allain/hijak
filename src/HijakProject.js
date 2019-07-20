@@ -29,7 +29,7 @@ export default class HijakProject extends EventEmitter {
 
   get buildPath() {
     return path.join(
-      os.tmpdir(),
+      os.homedir(),
       ".hijak",
       `project-${hashString(this.projectDir)}`
     )
