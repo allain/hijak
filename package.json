@@ -2,8 +2,8 @@
   "name": "hijak",
   "version": "0.1.16",
   "bin": {
-    "hj": "./dist/index.cjs.js",
-    "hijak": "./dist/index.cjs.js"
+    "hj": "./bin/hijak",
+    "hijak": "./bin/hijak"
   },
   "description": "A tool for hijacking another npm module's build system.",
   "main": "dist/index.cjs.js",
