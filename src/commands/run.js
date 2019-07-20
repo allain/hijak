@@ -9,6 +9,7 @@ import Debug from "debug"
 import sleep from "../lib/sleep"
 import syncDir from "../lib/sync-dirs"
 import ensureHijacked from "../lib/ensure-hijacked"
+import HijakProject from "../HijakProject"
 
 const debug = Debug("hijak:run")
 
@@ -28,7 +29,7 @@ export async function action(args, argv) {
     ? path.resolve(process.cwd(), args.project)
     : process.cwd()
 
-  await fs.ensureDir(path.resolve(projectDir, "node_modules"))
+  const hijakProject = new HijakProject(projectDir)
 
   const commandName = args._[3]
   if (!commandName) {
@@ -39,73 +40,10 @@ export async function action(args, argv) {
 
   debug("running npm command %s", commandName)
 
-  const buildDir = await ensureHijacked(projectDir)
-
   const escapePos = argv.indexOf("--")
   const npmArgs = escapePos >= 0 ? argv.slice(escapePos) : []
-
-  // TODO: perform an update here if needed
-  await prepareBuildDirForRun(buildDir, projectDir).catch(err => {
-    console.error(err.message)
-  })
-
-  const buildPkg = await loadJson(path.resolve(buildDir, "package.json"))
-
-  const typeDefs = Object.entries(buildPkg.devDependencies || {}).filter(
-    ([name]) => name.match(/^@types\//)
-  )
-
-  const missingTypeDefs = typeDefs.filter(([depName]) => {
-    return !fs.pathExistsSync(path.join(projectDir, "node_modules", depName))
-  })
-
-  if (missingTypeDefs.length) {
-    const depArgs = missingTypeDefs.map(
-      ([depName, semver]) => `${depName}@${semver}`
-    )
-
-    await exec(npmPath, ["install", "--silent", "--no-save", ...depArgs], {
-      cwd: projectDir
-    })
-  }
-
-  const pkg = await loadJson(path.resolve(projectDir, "package.json"))
-
-  const missingBuildDeps = Object.entries({
-    ...(pkg.dependencies || {}),
-    ...(pkg.devDependencies || {})
-  }).filter(([depName, semver]) => {
-    try {
-      require.resolve(depName, { paths: [buildDir] })
-      return false
-    } catch (err) {
-      return true
-    }
-  })
-
-  if (missingBuildDeps.length) {
-    const depArgs = missingBuildDeps.map(
-      ([depName, semver]) => `${depName}@${semver}`
-    )
-
-    await exec(npmPath, ["install", "--silent", "--no-save", ...depArgs], {
-      cwd: buildDir
-    })
-  }
-
-  const stopSync = syncDir(process.cwd(), buildDir)
-  const result = await exec(npmPath, ["run", commandName, ...npmArgs], {
-    cwd: buildDir
-  })
-
-  debug("waiting for last changes to sync")
-  await sleep(500)
-
-  await stopSync()
-
-  // @ts-ignore
-
-  return result.exitCode === 0
+  const result = await hijakProject.run([commandName, ...npmArgs])
+  return result
 }
 
 const ignoredRegex = /^(node_modules|package.json|package-lock.json|[.].*)$/
