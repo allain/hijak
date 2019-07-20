@@ -20,6 +20,6 @@ export default function exec(command, args, options = {}) {
     c.stderr.pipe(process.stderr)
 
     c.on("error", err => reject(err))
-    c.on("exit", code => resolve(code))
+    c.on("exit", code => (code ? reject : resolve)(code))
   })
 }

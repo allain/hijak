@@ -1,4 +1,3 @@
 #!/usr/bin/env node
 
-// Call out to the compiled bin
-require("../dist/bin.js").default()
+require("../dist/index.cjs.js").main()

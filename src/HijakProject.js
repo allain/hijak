@@ -8,11 +8,13 @@ import exec from "./lib/exec"
 import sleep from "./lib/sleep"
 import syncDirs from "./lib/sync-dirs"
 import hashTarget from "./lib/hash-target"
+import { EventEmitter } from "events"
 
 const debug = Debug("hijak")
 
-export default class HijakProject {
+export default class HijakProject extends EventEmitter {
   constructor(projectDir) {
+    super()
     this.projectDir = projectDir
   }
 
@@ -149,7 +151,7 @@ export default class HijakProject {
     })
 
     if (missingBuildDeps.length) {
-      console.log("installing missing deps on build")
+      this.emit("info", "installing missing deps on build")
       const depArgs = missingBuildDeps.map(
         ([depName, semver]) => `${depName}@${semver}`
       )
@@ -177,7 +179,7 @@ export default class HijakProject {
     })
 
     if (missingTypeDefs.length) {
-      console.log("installing type packages to project")
+      this.emit("info", "installing type packages to project")
       const depArgs = missingTypeDefs.map(
         ([depName, semver]) => `${depName}@${semver}`
       )
@@ -188,7 +190,7 @@ export default class HijakProject {
   }
 
   async _patchBuildWithProject() {
-    console.log("patching build with project")
+    this.emit("info", "patching build with project")
     const ignoredRegex = /^(node_modules|package.json|package-lock.json|[.].*)$/
     const sourcePaths = (await fs.readdir(this.projectDir)).filter(
       p => !p.match(ignoredRegex)

@@ -1,4 +1,4 @@
-import main from "../src/bin"
+import { main } from "../src/index"
 import collect from "collect-console"
 
 describe("main", () => {
