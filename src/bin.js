@@ -15,6 +15,12 @@ const commands = { install, run }
 export default async function main(argv = process.argv) {
   const args = minimist(argv)
   const actualParams = args._.slice(2)
+
+  if (args.version) {
+    console.log(pkg.version)
+    process.exit(0)
+  }
+
   if (actualParams.length === 0) return usage(args)
   const commandName = actualParams[0]
   const command = commands[commandName]
@@ -49,7 +55,7 @@ export function usage(args) {
   console.log(
     usageBuilder([
       {
-        header: commandName + "v" + pkg.version,
+        header: commandName,
         content: "A tool for hijacking build pipelines for the greater good."
       },
       {
@@ -67,6 +73,10 @@ export function usage(args) {
           {
             name: "run",
             synopsis: "Runs an npm script using the hijacked project."
+          },
+          {
+            name: "uninstall",
+            synopsis: "Removes the hijack of the target project."
           }
         ]
       }

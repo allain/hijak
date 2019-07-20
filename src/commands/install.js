@@ -3,37 +3,30 @@ import * as path from "path"
 import ensureHijacked from "../lib/ensure-hijacked"
 import usageBuilder from "command-line-usage"
 import Debug from "debug"
+import HijakProject from "../HijakProject"
 
 const debug = Debug("hijak:install")
 
 export async function action(args) {
-  const target = args._[3]
+  const gitUrl = args._[3]
 
-  if (!target) {
-    console.error("a git repo to hijack must be given")
+  if (!gitUrl) {
+    console.error("a git url to hijack must be given")
     return usage(args)
   }
 
-  if (target.match(/^git@/)) {
-    console.log("hijacking", target)
+  if (gitUrl.match(/^git@/)) {
+    console.log("hijacking", gitUrl)
   } else {
-    throw new Error("only git targets are supported: " + target)
+    throw new Error("only git targets are supported: " + gitUrl)
   }
 
   const projectDir = args.project
     ? path.resolve(process.cwd(), args.project)
     : process.cwd()
-  const pkgJsonPath = path.resolve(projectDir, "package.json")
-  const pkg = await loadJson(pkgJsonPath)
 
-  debug("adding hijack config into package.json")
-  pkg.hijak = pkg.hijak || {}
-  pkg.hijak.repo = target
-  await saveJson(pkgJsonPath, pkg)
-
-  debug("hijacking", target, "for", projectDir)
-
-  await ensureHijacked(projectDir)
+  const hijakProject = new HijakProject(projectDir)
+  await hijakProject.install()
 
   return true
 }
