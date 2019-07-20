@@ -22,6 +22,11 @@ export default class HijakProject extends EventEmitter {
     return !!loadJsonSync(path.join(this.projectDir, "package.json")).hijak
   }
 
+  get gitUrl() {
+    const hijak = loadJsonSync(path.join(this.projectDir, "package.json")).hijak
+    return hijak ? hijak.repo : null
+  }
+
   get buildPath() {
     return path.join(
       os.tmpdir(),

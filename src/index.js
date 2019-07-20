@@ -4,14 +4,34 @@ import ansicolors from "ansi-colors"
 import minimist from "minimist"
 import usageBuilder from "command-line-usage"
 
+import * as info from "./commands/info"
 import * as install from "./commands/install"
 import * as run from "./commands/run"
 import * as uninstall from "./commands/uninstall"
 
-import { loadJsonSync, loadJson } from "./lib/load-file"
+import { loadJsonSync } from "./lib/load-file"
 
 const pkg = loadJsonSync(path.resolve(__dirname, "..", "package.json"))
-const commands = { install, run, uninstall }
+
+const buildRunSynonym = scriptName => ({
+  action(args, argv) {
+    // mutation
+    args._.splice(2, 1, "run", scriptName)
+    return run.action(args, argv)
+  },
+  usage() {
+    console.log("alias for", ansicolors.bold(`hijak run ${scriptName}`))
+  }
+})
+
+const commands = {
+  info,
+  install,
+  run,
+  uninstall,
+  start: buildRunSynonym("start"),
+  test: buildRunSynonym("test")
+}
 
 export async function main(argv = process.argv) {
   const args = minimist(argv)
@@ -27,7 +47,11 @@ export async function main(argv = process.argv) {
   const command = commands[commandName]
 
   if (!command) {
-    console.error(ansicolors.bold.red("unknown command:"), commandName)
+    console.error(
+      ansicolors.bold.red("ERROR: "),
+      "unknown command",
+      commandName
+    )
     return usage(args)
   }
 
@@ -37,6 +61,7 @@ export async function main(argv = process.argv) {
 
   const success = await command.action(args, argv).catch(err => {
     console.error(ansicolors.bold.red("ERROR:"), err.message)
+    console.error(err)
   })
   if (success === false) {
     process.exit(1)
@@ -68,6 +93,10 @@ export function usage(args) {
       {
         header: "Commands",
         content: [
+          {
+            name: "info",
+            synopsis: "Displays information about a project's hijak config"
+          },
           {
             name: "install",
             synopsis:
