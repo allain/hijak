@@ -9,7 +9,8 @@
   "esnext": "dist/index.esm.js",
   "scripts": {
     "build": "rollup --config rollup.config.js",
-    "test": "jest --config jest.config.js"
+    "test": "jest --config jest.config.js",
+    "prepublishOnly": "npm run build && npm run test"
   },
   "keywords": [
     "npm",
@@ -37,6 +38,7 @@
     "@babel/preset-env": "^7.4.3",
     "@types/jest": "^24.0.15",
     "babel-jest": "^24.7.1",
+    "collect-console": "^1.0.1",
     "jest": "^24.8.0",
     "rimraf": "^2.6.3",
     "rollup": "^1.17.0",
