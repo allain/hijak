@@ -6,11 +6,12 @@ import usageBuilder from "command-line-usage"
 
 import * as install from "./commands/install"
 import * as run from "./commands/run"
+import * as uninstall from "./commands/uninstall"
 
 import { loadJsonSync, loadJson } from "./lib/load-file"
 
 const pkg = loadJsonSync(path.resolve(__dirname, "..", "package.json"))
-const commands = { install, run }
+const commands = { install, run, uninstall }
 
 export default async function main(argv = process.argv) {
   const args = minimist(argv)
@@ -34,7 +35,9 @@ export default async function main(argv = process.argv) {
     return command.usage(args)
   }
 
-  const success = await command.action(args, argv)
+  const success = await command.action(args, argv).catch(err => {
+    console.error(ansicolors.bold.red("ERROR:"), err.message)
+  })
   if (success === false) {
     process.exit(1)
   } else {
@@ -83,8 +86,3 @@ export function usage(args) {
     ])
   )
 }
-
-// hijack(program)
-// run(program)
-
-// program.parse(process.argv)

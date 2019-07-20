@@ -1,14 +1,8 @@
 import path from "path"
-import fs from "fs-extra"
 import which from "../lib/which"
-import exec from "../lib/exec"
 import ansicolors from "ansi-colors"
-import { loadJson } from "../lib/load-file"
 import usageBuilder from "command-line-usage"
 import Debug from "debug"
-import sleep from "../lib/sleep"
-import syncDir from "../lib/sync-dirs"
-import ensureHijacked from "../lib/ensure-hijacked"
 import HijakProject from "../HijakProject"
 
 const debug = Debug("hijak:run")
@@ -42,31 +36,7 @@ export async function action(args, argv) {
 
   const escapePos = argv.indexOf("--")
   const npmArgs = escapePos >= 0 ? argv.slice(escapePos) : []
-  const result = await hijakProject.run([commandName, ...npmArgs])
-  return result
-}
-
-const ignoredRegex = /^(node_modules|package.json|package-lock.json|[.].*)$/
-
-async function prepareBuildDirForRun(buildDir, projectDir) {
-  const gitBin = await which("git")
-  await exec(gitBin, ["reset", "--hard", "--quiet"], { cwd: buildDir })
-  await exec(gitBin, ["clean", "-f", "--quiet"], { cwd: buildDir })
-
-  const sourcePaths = (await fs.readdir(projectDir)).filter(
-    p => !p.match(ignoredRegex)
-  )
-  for (const p of sourcePaths) {
-    const srcPath = path.resolve(projectDir, p)
-    const targetPath = path.resolve(buildDir, p)
-
-    debug(`installing %s to %s`, p, targetPath)
-    if (fs.pathExists(targetPath)) {
-      await fs.remove(targetPath)
-    }
-
-    await fs.copy(srcPath, targetPath)
-  }
+  return hijakProject.run([commandName, ...npmArgs])
 }
 
 export function usage(args) {
