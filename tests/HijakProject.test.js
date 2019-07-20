@@ -5,7 +5,8 @@ import withTestProject from "./fixtures/with-test-project"
 const TEST_GIT_URL = "git@github.com:allain/template-test.git"
 
 describe("HijakProject", () => {
-  it.only("can be created", () => {
+  it("can be created", () => {
+    const built = new HijakProject("/tmp")
     expect(new HijakProject("/tmp")).toBeInstanceOf(HijakProject)
   })
 
