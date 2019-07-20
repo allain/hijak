@@ -7,7 +7,7 @@ import exec from "../src/lib/exec"
 import sleep from "../src/lib/sleep"
 import syncDirs from "../src/lib/sync-dirs"
 
-const debug = Debug("hijak:install")
+const debug = Debug("hijak")
 
 export default class HijakProject {
   constructor(projectDir) {
@@ -68,38 +68,51 @@ export default class HijakProject {
     await fs.ensureDir(path.resolve(this.projectDir, "node_modules"))
 
     if (await fs.pathExists(this.buildPath)) {
-      const gitBin = await which("git")
-      await exec(gitBin, ["reset", "--hard", "--quiet"], {
-        cwd: this.buildPath
-      })
-      await exec(gitBin, ["clean", "-f", "--quiet"], { cwd: this.buildPath })
+      await this._resetBuildDir()
     } else {
-      const gitBin = await which("git")
-      await exec(gitBin, ["clone", "--quiet", gitUrl, this.buildPath], {
-        cwd: this.projectDir
-      })
+      await this._createBuildDir(gitUrl)
     }
 
-    await this.patchBuildWithProject()
+    await this._patchBuildWithProject()
 
-    await this.installTypePackagesToProject()
+    await this._installTypePackagesToProject()
 
-    await this.installProjectDepsOnBuild(pkg)
+    await this._installProjectDepsOnBuildDir(pkg)
 
     const stopSync = syncDirs(process.cwd(), this.buildPath)
-    const result = await exec(npmPath, ["run", ...npmArgs], {
+    return exec(npmPath, ["run", ...npmArgs], {
       cwd: this.buildPath
-    })
-
-    debug("waiting for last changes to sync")
-    await sleep(500)
-
-    await stopSync()
-
-    return result.exitCode
+    }).then(
+      async () => {
+        debug("waiting for last changes to sync")
+        await sleep(100) // Seems chokidar shutdown isn't immediate
+        await stopSync()
+        return true
+      },
+      async err => {
+        debug("waiting for last changes to sync")
+        await stopSync()
+        return false
+      }
+    )
   }
 
-  async installProjectDepsOnBuild(pkg) {
+  async _createBuildDir(gitUrl) {
+    const gitBin = await which("git")
+    await exec(gitBin, ["clone", "--quiet", gitUrl, this.buildPath], {
+      cwd: this.projectDir
+    })
+  }
+
+  async _resetBuildDir() {
+    const gitBin = await which("git")
+    await exec(gitBin, ["reset", "--hard", "--quiet"], {
+      cwd: this.buildPath
+    })
+    await exec(gitBin, ["clean", "-f", "--quiet"], { cwd: this.buildPath })
+  }
+
+  async _installProjectDepsOnBuildDir(pkg) {
     const missingBuildDeps = Object.entries({
       ...(pkg.dependencies || {}),
       ...(pkg.devDependencies || {})
@@ -111,6 +124,7 @@ export default class HijakProject {
         return true
       }
     })
+
     if (missingBuildDeps.length) {
       const depArgs = missingBuildDeps.map(
         ([depName, semver]) => `${depName}@${semver}`
@@ -121,7 +135,11 @@ export default class HijakProject {
     }
   }
 
-  async installTypePackagesToProject() {
+  /**
+   * Even though the project dir won't have build dirs installs it could conceivably use them anyhow (like with jest).
+   * Installing their @types/* specs makes development better, especially in vscode.
+   */
+  async _installTypePackagesToProject() {
     const buildPkg = await loadJson(
       path.resolve(this.buildPath, "package.json")
     )
@@ -143,7 +161,7 @@ export default class HijakProject {
     }
   }
 
-  async patchBuildWithProject() {
+  async _patchBuildWithProject() {
     const ignoredRegex = /^(node_modules|package.json|package-lock.json|[.].*)$/
     const sourcePaths = (await fs.readdir(this.projectDir)).filter(
       p => !p.match(ignoredRegex)

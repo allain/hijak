@@ -13,7 +13,9 @@ export default function syncDirectories(srcPath, buildPath) {
   const watcher = chokidar.watch([srcPath, buildPath], {
     alwaysStat: true,
     ignoreInitial: true,
-    ignored: "node_modules"
+    ignored: "node_modules",
+    persistent: false,
+    awaitWriteFinish: true
   })
 
   watcher.on("all", async (event, fromPath) => {
