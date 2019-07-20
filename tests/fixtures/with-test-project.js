@@ -18,6 +18,8 @@ export default async function withTestProject(fn) {
     }
   })
 
+  await saveText(path.join(randomPath, "FILE"), "REPLACED")
+
   await saveText(
     path.join(randomPath, "src", "index.js"),
     `
