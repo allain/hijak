@@ -43,7 +43,13 @@ export async function main(argv = process.argv) {
   }
 
   if (actualParams.length === 0) return usage(args)
-  const commandName = actualParams[0]
+
+  let commandName = actualParams[0]
+  if (commandName.match(/^git@/)) {
+    // Then the user is doing "hijak git@git..." so let's inject an "install" command
+    args._ = ["install", ...args._]
+    commandName = "install"
+  }
   const command = commands[commandName]
 
   if (!command) {
@@ -63,6 +69,7 @@ export async function main(argv = process.argv) {
     console.error(ansicolors.bold.red("ERROR:"), err.message)
     console.error(err)
   })
+
   if (success === false) {
     process.exit(1)
   } else {
