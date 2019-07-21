@@ -25,24 +25,4 @@ describe("main", () => {
 
     expect(output.join("\n")).toMatch(/usage/gi)
   })
-
-  it("displays usage message when run with --help and install command", async () => {
-    const output = await collect.log(async () => {
-      await main(process.argv.slice(0, 2).concat(["install", "--help"]))
-    })
-
-    expect(output).not.toHaveLength(0)
-
-    expect(output.join("\n")).toMatch(/--project/gi)
-  })
-
-  it("displays usage message when run with --help and run command", async () => {
-    const output = await collect.log(async () => {
-      await main(process.argv.slice(0, 2).concat(["run", "--help"]))
-    })
-
-    expect(output).not.toHaveLength(0)
-
-    expect(output.join("\n")).toMatch(/--project/gi)
-  })
 })

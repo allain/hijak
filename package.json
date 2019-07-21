@@ -5,7 +5,7 @@
     "hj": "./bin/hijak",
     "hijak": "./bin/hijak"
   },
-  "description": "A tool for hijacking another npm module's build system.",
+  "description": "A tool for hijacking an npm project's build system.",
   "main": "dist/index.cjs.js",
   "esnext": "dist/index.esm.js",
   "scripts": {

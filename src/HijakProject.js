@@ -33,7 +33,6 @@ export default class HijakProject extends EventEmitter {
       ".hijak",
       `project-${hashString(this.projectDir)}`
     )
-    // return path.join(this.projectDir, "node_modules", ".hijak")
   }
 
   async _updatePkg(fn) {
@@ -56,6 +55,8 @@ export default class HijakProject extends EventEmitter {
       debug("removing %s", this.buildPath)
       await fs.remove(this.buildPath)
     }
+
+    await this.prepare()
   }
 
   async uninstall() {
@@ -69,7 +70,7 @@ export default class HijakProject extends EventEmitter {
     })
   }
 
-  async run(npmArgs) {
+  async npm(npmArgs) {
     if (!this.installed) {
       throw new Error("project does not use hijak")
     }
@@ -78,19 +79,21 @@ export default class HijakProject extends EventEmitter {
 
     const stopSync = syncDirs(process.cwd(), this.buildPath)
 
-    return exec("npm", ["run", ...npmArgs], {
+    const childProcess = exec("npm", npmArgs, {
       cwd: this.buildPath
-    }).then(
+    })
+
+    return childProcess.then(
       async () => {
         debug("waiting for last changes to sync")
         await sleep(100) // Seems chokidar shutdown isn't immediate
         await stopSync()
         return true
       },
-      async err => {
+      async exitCode => {
         debug("waiting for last changes to sync")
         await stopSync()
-        return false
+        throw exitCode
       }
     )
   }

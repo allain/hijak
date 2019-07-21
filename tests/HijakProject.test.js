@@ -9,7 +9,7 @@ const TEST_GIT_URL = "git@github.com:allain/template-test.git"
 
 describe("HijakProject", () => {
   // because part of the setup is to clone from github
-  jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
 
   it("can be created", () => {
     const built = new HijakProject("/tmp")
@@ -43,17 +43,24 @@ describe("HijakProject", () => {
       const hp = new HijakProject(projectDir)
       await hp.install(TEST_GIT_URL)
 
-      return expect(hp.run(["success"])).resolves.toBe(true)
+      return expect(hp.npm(["run", "success"])).resolves.toBe(true)
     }))
 
-  it.todo("failing scripts return the exit code of the failure")
-
-  it("failing scripts return false", () =>
+  it("running hijak run yields the expected npm run result", () =>
     withTestProject(async projectDir => {
       const hp = new HijakProject(projectDir)
       await hp.install(TEST_GIT_URL)
 
-      return expect(hp.run(["fail"])).resolves.toBe(false)
+      return expect(hp.npm(["run"])).resolves.toBe(true)
+    }))
+
+  it("failing scripts reject to exit code", () =>
+    withTestProject(async projectDir => {
+      const hp = new HijakProject(projectDir)
+      await hp.install(TEST_GIT_URL)
+
+      await expect(hp.npm(["run", "fail"])).rejects.toBe(1)
+      await expect(hp.npm(["run", "fail-code", "2"])).rejects.toBe(2)
     }))
 
   it("is lazy when setting up buildDir dependencies", () =>
@@ -61,13 +68,13 @@ describe("HijakProject", () => {
       const hp = new HijakProject(projectDir)
       await hp.install(TEST_GIT_URL)
 
-      await hp.run(["success"])
+      await hp.npm(["run", "success"])
       const statFirst = fs.stat(
         path.resolve(hp.buildPath, "node_modules", "lodash.tolower")
       )
       await sleep(100)
       // This should not re-install lodash.tolower again
-      await hp.run(["success"])
+      await hp.npm(["run", "success"])
       const statSecond = fs.stat(
         path.resolve(hp.buildPath, "node_modules", "lodash.tolower")
       )
@@ -79,7 +86,7 @@ describe("HijakProject", () => {
       const hp = new HijakProject(projectDir)
       await hp.install(TEST_GIT_URL)
 
-      await hp.run(["cat-file-to-tmp"])
+      await hp.npm(["run", "cat-file-to-tmp"])
 
       await expect(await loadText("/tmp/FILE")).toEqual("REPLACED")
     }))
@@ -99,7 +106,7 @@ describe("HijakProject", () => {
 
       await hp.install(TEST_GIT_URL)
 
-      await hp.run(["success"])
+      await hp.npm(["run", "success"])
 
       expect(await fs.pathExists(typePath)).toBe(true)
     }))

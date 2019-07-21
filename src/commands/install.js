@@ -1,64 +1,13 @@
-import * as path from "path"
-import usageBuilder from "command-line-usage"
-import HijakProject from "../HijakProject"
-
-export async function action(args) {
+export default async function install(hijakProject, args) {
   const gitUrl = args._[3]
 
-  if (!gitUrl) {
-    console.error("a git url to hijack must be given")
-    return usage(args)
-  }
+  if (!gitUrl) throw new Error("a git url to hijack must be given")
 
-  if (gitUrl.match(/^git@/)) {
-    console.log("hijacking", gitUrl)
-  } else {
+  if (!gitUrl.match(/^git@/))
     throw new Error("only git targets are supported: " + gitUrl)
-  }
 
-  const projectDir = args.project
-    ? path.resolve(process.cwd(), args.project)
-    : process.cwd()
+  console.log("hijacking", gitUrl)
 
-  const hijakProject = new HijakProject(projectDir)
   await hijakProject.install(gitUrl)
-  await hijakProject.prepare()
   return true
-}
-
-export function usage(args) {
-  const commandName = path.basename(args._[1])
-  console.log(
-    usageBuilder([
-      {
-        header: "hijack install",
-        content:
-          "Hijacks the passed git repo as the build pipeline for the project."
-      },
-      {
-        header: "Usage",
-        content: `\$ ${commandName} install [--project={underline projectDir}] <git-url>`
-      },
-      {
-        header: "Options",
-        optionList: [
-          {
-            name: "help",
-            description: "Display this usage guide.",
-            type: Boolean
-          },
-          {
-            name: "project",
-            description: "Installs the hijack into this project directory.",
-            type: String,
-            typeLabel: "{underline dir}"
-          }
-        ]
-      },
-      {
-        header: "Example",
-        content: `\$ ${commandName} install git@github.com:allain/template-npm-project.git`
-      }
-    ])
-  )
 }
