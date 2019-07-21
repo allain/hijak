@@ -1,8 +1,10 @@
 import chokidar from "chokidar"
 import fs from "fs-extra"
 import path from "path"
+import sleep from "./sleep"
 
 import Debug from "debug"
+import { SSL_OP_EPHEMERAL_RSA } from "constants"
 const debug = Debug("hijak:sync-dirs")
 
 export default function syncDirectories(srcPath, buildPath) {
@@ -12,10 +14,10 @@ export default function syncDirectories(srcPath, buildPath) {
   // Start watching the build directory for things that the build is modifying and push them to the srcPath
   const watcher = chokidar.watch([srcPath, buildPath], {
     alwaysStat: true,
+    atomic: true,
     ignoreInitial: true,
     ignored: "node_modules",
-    persistent: false,
-    awaitWriteFinish: true
+    persistent: false
   })
 
   watcher.on("all", async (event, fromPath) => {
@@ -79,5 +81,11 @@ export default function syncDirectories(srcPath, buildPath) {
   return async () => {
     debug("stopping directory watcher")
     watcher.close()
+
+    // The atomic: true option means there's a built-in 100ms delay before a file
+    // write (delete + write of some editors) is emitted as a change event.
+    // So we need to wait an amount of time before all changes are actually seen.
+    debug("sleeping for a bit to allow all changes to settle")
+    await sleep(250)
   }
 }

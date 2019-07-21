@@ -4,13 +4,20 @@ import HijakProject from "./HijakProject"
 import minimist from "minimist"
 import usageBuilder from "command-line-usage"
 import commands from "./commands/index"
-
 import { loadJsonSync } from "./lib/load-file"
+import Debug from "debug"
+
+const debug = Debug("hijak")
 
 const pkg = loadJsonSync(path.resolve(__dirname, "..", "package.json"))
 
 export async function main(argv = process.argv) {
-  const args = minimist(argv)
+  const args = minimist(argv, {
+    boolean: ["quiet"],
+    default: {
+      quiet: false
+    }
+  })
   const actualParams = args._.slice(2)
 
   if (args.version) {
@@ -31,21 +38,18 @@ export async function main(argv = process.argv) {
     ? path.resolve(process.cwd(), args.project)
     : process.cwd()
 
-  const hijakProject = new HijakProject(projectDir)
+  const hijakProject = new HijakProject(projectDir, { quiet: args.quiet })
 
-  const command = commands[commandName]
+  const command = commands[commandName] || commands.npm
 
-  const succeeded = await (command
-    ? command(hijakProject, args).then(
-        () => true,
-        err => {
-          console.error(ansicolors.bold.red("ERROR:"), err.message)
-          console.error(err)
-          return false
-        }
-      )
-    : // passthrough to hijakProject's npm runner
-      hijakProject.npm(argv.slice(2)))
+  const succeeded = await command(hijakProject, args, argv).then(
+    () => true,
+    err => {
+      console.error(ansicolors.bold.red("ERROR:"), err.message)
+      debug(err)
+      return false
+    }
+  )
 
   process.exit(succeeded ? 0 : 1)
 }

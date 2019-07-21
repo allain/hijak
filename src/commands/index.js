@@ -1,5 +1,6 @@
-import info from "./info"
-import hijack from "./hijack"
 import free from "./free"
+import hijack from "./hijack"
+import info from "./info"
+import npm from "./npm"
 
-export default { info, hijack, free }
+export default { free, hijack, info, npm }

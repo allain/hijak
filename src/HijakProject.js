@@ -4,7 +4,6 @@ import Debug from "debug"
 import fs from "fs-extra"
 import path from "path"
 import exec from "./lib/exec"
-import sleep from "./lib/sleep"
 import syncDirs from "./lib/sync-dirs"
 import hashString from "./lib/hash-string"
 import { EventEmitter } from "events"
@@ -12,9 +11,10 @@ import { EventEmitter } from "events"
 const debug = Debug("hijak")
 
 export default class HijakProject extends EventEmitter {
-  constructor(projectDir) {
+  constructor(projectDir, options = {}) {
     super()
     this.projectDir = projectDir
+    this.options = options
   }
 
   get installed() {
@@ -79,18 +79,13 @@ export default class HijakProject extends EventEmitter {
     const stopSync = syncDirs(process.cwd(), this.buildPath)
 
     const childProcess = exec("npm", npmArgs, {
-      cwd: this.buildPath
+      cwd: this.buildPath,
+      quiet: this.options.quiet
     })
 
     return childProcess.then(
-      async () => {
-        debug("waiting for last changes to sync")
-        await sleep(100) // Seems chokidar shutdown isn't immediate
-        await stopSync()
-        return true
-      },
+      () => stopSync(),
       async exitCode => {
-        debug("waiting for last changes to sync")
         await stopSync()
         throw exitCode
       }
@@ -98,9 +93,7 @@ export default class HijakProject extends EventEmitter {
   }
 
   async prepare() {
-    if (!this.installed) {
-      throw new Error("project does not use hijack")
-    }
+    if (!this.installed) throw new Error("project does not use hijack")
 
     const pkg = await this._loadProjectPackage()
 
@@ -124,7 +117,8 @@ export default class HijakProject extends EventEmitter {
 
   async _createBuildDir(gitUrl) {
     await exec("git", ["clone", gitUrl, this.buildPath], {
-      cwd: this.projectDir
+      cwd: this.projectDir,
+      quiet: this.options.quiet
     })
   }
 
@@ -132,19 +126,10 @@ export default class HijakProject extends EventEmitter {
     const missingBuildDeps = Object.entries({
       ...(pkg.dependencies || {}),
       ...(pkg.devDependencies || {})
-    }).filter(([depName]) => {
-      return !fs.pathExistsSync(
-        path.join(this.buildPath, "node_modules", depName)
-      )
-      /*
-      try {
-        require.resolve(depName, { paths: [this.buildPath] })
-        return false
-      } catch (err) {
-        return true
-      }
-      */
-    })
+    }).filter(
+      ([depName]) =>
+        !fs.pathExistsSync(path.join(this.buildPath, "node_modules", depName))
+    )
 
     if (missingBuildDeps.length) {
       this.emit("info", "installing missing deps on build")
@@ -152,7 +137,8 @@ export default class HijakProject extends EventEmitter {
         ([depName, semver]) => `${depName}@${semver}`
       )
       await exec("npm", ["install", "--no-save", ...depArgs], {
-        cwd: this.buildPath
+        cwd: this.buildPath,
+        quiet: this.options.quiet
       })
     }
   }
@@ -180,7 +166,8 @@ export default class HijakProject extends EventEmitter {
         ([depName, semver]) => `${depName}@${semver}`
       )
       await exec("npm", ["install", "--no-save", ...depArgs], {
-        cwd: this.projectDir
+        cwd: this.projectDir,
+        quiet: this.options.quiet
       })
     }
   }

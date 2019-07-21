@@ -54,10 +54,10 @@ In this case
 hijak run
 
 # to run tests in watch mode and generate code coverage reports
-hijak test -- --watchAll --coverage
+hijak test --watchAll --coverage
 
 # to run build in watch mode
-hijak run build -- --watch
+hijak run build --watch
 
 # to clean your project of any generate build artifacts
 hijak run clean
