@@ -5,22 +5,20 @@ const debug = Debug("hijak")
 export default function npmCommand(hijakProject, args, argv) {
   debug("received raw args %o", argv)
   // I'm not sure what the right way ot handle -- is, but this feels right
-  const rawArgs = argv.slice(2)
-  if (!rawArgs.some(a => a === "--")) {
-    if (rawArgs[0] === "run") {
+  const preparedArgs = argv.slice(2)
+  if (!preparedArgs.some(a => a === "--")) {
+    if (preparedArgs[0] === "run") {
       // it's a command
-      if (rawArgs[1] && rawArgs[1][0] !== "-") {
-        rawArgs.splice(2, 0, "--")
+      if (preparedArgs[1] && preparedArgs[1][0] !== "-") {
+        preparedArgs.splice(2, 0, "--")
       } else {
-        rawArgs.splice(1, 0, "--")
+        preparedArgs.splice(1, 0, "--")
       }
-    } else if (rawArgs[0] === "start") {
-      rawArgs.splice(1, 0, "--")
-    } else if (rawArgs[0] == "test") {
-      rawArgs.splice(1, 0, "--")
-    } else if (rawArgs[0] === "run") {
-      rawArgs.splice(2, 0, "--")
+    } else if (preparedArgs[0] === "start") {
+      preparedArgs.splice(1, 0, "--")
+    } else if (preparedArgs[0] == "test") {
+      preparedArgs.splice(1, 0, "--")
     }
   }
-  return hijakProject.npm(argv.slice(2))
+  return hijakProject.npm(preparedArgs)
 }
