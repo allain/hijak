@@ -108,9 +108,7 @@ export default class HijakProject extends EventEmitter {
     const gitUrl = pkg.hijak.repo
 
     await fs.ensureDir(path.resolve(this.projectDir, "node_modules"))
-    if (await fs.pathExists(this.buildPath)) {
-      await this._resetBuildDir()
-    } else {
+    if (!(await fs.pathExists(this.buildPath))) {
       await this._createBuildDir(gitUrl)
     }
 
@@ -130,14 +128,6 @@ export default class HijakProject extends EventEmitter {
     await exec(gitBin, ["clone", gitUrl, this.buildPath], {
       cwd: this.projectDir
     })
-  }
-
-  async _resetBuildDir() {
-    const gitBin = await which("git")
-    await exec(gitBin, ["reset", "--hard"], {
-      cwd: this.buildPath
-    })
-    await exec(gitBin, ["clean", "-f"], { cwd: this.buildPath })
   }
 
   async _installMissingDepsOnBuildDir(pkg) {

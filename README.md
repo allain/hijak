@@ -16,7 +16,7 @@ Because these things make me sad:
 Your code is a patch on a hijacked project.
 It performs the patch, then starts a synchronizer and watches the scripts run, duplicating changes in your project.
 
-A nice little flowchart of what happens when you run **`hijak run build`**: https://code2flow.com/s9xsQA
+A nice little flowchart of what happens when you run **`hijak run build`**: https://code2flow.com/XrT0F2
 
 ## Hijak in 5 minutes (or less)
 
