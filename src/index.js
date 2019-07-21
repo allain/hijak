@@ -1,10 +1,11 @@
 import HijakProject from "./HijakProject"
-import main from "./main"
+import _main from "./main"
 
 export default HijakProject
 
+export const main = _main
 if (module.parent === null) {
-  main().catch(err => {
+  _main().catch(err => {
     console.error(err)
   })
 }
