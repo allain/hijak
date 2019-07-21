@@ -2,9 +2,7 @@ import chokidar from "chokidar"
 import fs from "fs-extra"
 import path from "path"
 import sleep from "./sleep"
-
 import Debug from "debug"
-import { SSL_OP_EPHEMERAL_RSA } from "constants"
 const debug = Debug("hijak:sync-dirs")
 
 export default function syncDirectories(srcPath, buildPath) {

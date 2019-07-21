@@ -1,4 +1,5 @@
 import fs from "fs-extra"
+import os from "os"
 import path from "path"
 import { loadText } from "../src/lib/load-file"
 import HijakProject from "../src/HijakProject"
@@ -66,6 +67,23 @@ describe("HijakProject", () => {
       await hp.hijack(TEST_GIT_DIR)
 
       return expect(hp.npm(["run", "success"])).resolves.toBeUndefined()
+    }))
+
+  it.only("passes args through to underlying npm", () =>
+    withTestProject(async projectDir => {
+      const testPath = path.join(os.tmpdir(), "args")
+
+      if (await fs.pathExists(testPath)) {
+        await fs.remove(testPath)
+      }
+      const hp = new HijakProject(projectDir, { quiet: true })
+      await hp.hijack(TEST_GIT_DIR)
+
+      await hp.npm(["run", "delegate-args", "--", "YO"])
+      expect((await loadText(testPath)).trim()).toEqual("YO")
+
+      await hp.npm(["run", "delegate-args", "HELLO"])
+      expect((await loadText(testPath)).trim()).toEqual("HELLO")
     }))
 
   it("running hijak run yields the expected npm run result", () =>

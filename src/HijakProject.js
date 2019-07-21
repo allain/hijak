@@ -136,10 +136,20 @@ export default class HijakProject extends EventEmitter {
       const depArgs = missingBuildDeps.map(
         ([depName, semver]) => `${depName}@${semver}`
       )
-      await exec("npm", ["install", "--no-save", ...depArgs], {
-        cwd: this.buildPath,
-        quiet: this.options.quiet
-      })
+      await exec(
+        "npm",
+        [
+          "install",
+          "--prefer-offline",
+          "--no-progress",
+          "--no-save",
+          ...depArgs
+        ],
+        {
+          cwd: this.buildPath,
+          quiet: this.options.quiet
+        }
+      )
     }
   }
 
@@ -165,10 +175,20 @@ export default class HijakProject extends EventEmitter {
       const depArgs = missingTypeDefs.map(
         ([depName, semver]) => `${depName}@${semver}`
       )
-      await exec("npm", ["install", "--no-save", ...depArgs], {
-        cwd: this.projectDir,
-        quiet: this.options.quiet
-      })
+      await exec(
+        "npm",
+        [
+          "install",
+          "--prefer-offline",
+          "--no-progress",
+          "--no-save",
+          ...depArgs
+        ],
+        {
+          cwd: this.projectDir,
+          quiet: this.options.quiet
+        }
+      )
     }
   }
 
