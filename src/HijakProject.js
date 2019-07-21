@@ -76,7 +76,7 @@ export default class HijakProject extends EventEmitter {
 
     await this.prepare()
 
-    const stopSync = syncDirs(process.cwd(), this.buildPath)
+    const stopSync = await syncDirs(process.cwd(), this.buildPath)
 
     const childProcess = exec("npm", npmArgs, {
       cwd: this.buildPath,

@@ -8,7 +8,7 @@ import globby from "globby"
 
 const debug = Debug("hijak:sync-dirs")
 
-export default function syncDirectories(srcPath, buildPath) {
+export default async function syncDirectories(srcPath, buildPath) {
   const changes = []
 
   const gitIgnorePath = path.resolve(srcPath, ".gitignore")
@@ -36,7 +36,16 @@ export default function syncDirectories(srcPath, buildPath) {
     persistent: false
   })
 
-  watcher.on("all", async (event, fromPath) => {
+  let processing = Promise.resolve()
+
+  watcher.on("all", (event, fromPath) => {
+    processing = processing.then(() => process(event, fromPath))
+  })
+
+  debug("watching %s <=> %s", srcPath, buildPath)
+
+  async function process(event, fromPath) {
+    debug("fs change", event, fromPath)
     const isSrcChange = !fromPath.startsWith(buildPath)
     const relativePath = path.relative(
       isSrcChange ? srcPath : buildPath,
@@ -74,10 +83,10 @@ export default function syncDirectories(srcPath, buildPath) {
           break
         case "addDir":
           debug("adding directory %s", toPath)
-          if (await fs.pathExists(toPath)) {
-            await fs.remove(toPath)
+          if (!(await fs.pathExists(toPath))) {
+            //await fs.remove(toPath)
+            await fs.mkdir(toPath)
           }
-          await fs.mkdir(toPath)
           break
         case "unlink":
           if (isSrcChange || safeToDelete(path.relative(buildPath, fromPath))) {
@@ -100,6 +109,12 @@ export default function syncDirectories(srcPath, buildPath) {
     } catch (err) {
       console.error(err.message)
     }
+  }
+
+  // Wait for watcher to be ready
+  await new Promise((resolve, reject) => {
+    watcher.once("ready", resolve)
+    watcher.once("error", reject)
   })
 
   return async () => {
@@ -110,6 +125,7 @@ export default function syncDirectories(srcPath, buildPath) {
     // write (delete + write of some editors) is emitted as a change event.
     // So we need to wait an amount of time before all changes are actually seen.
     debug("sleeping for a bit to allow all changes to settle")
-    await sleep(250)
+    await processing // wait till all fs changes are processed
+    // await sleep(5000)
   }
 }
