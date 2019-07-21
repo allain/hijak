@@ -26,9 +26,9 @@ Step 1 - install hijak
 npm install --global hijak
 ```
 
-Step 2 - start with a simple project
+Step 2 - write a simple project (or clone one like we do below)
 
-We've created a simple one that supports esm modules and jest for testing. It's not much, but it demonstrates things well.
+The one below uses, jest and import both a prod and dev dependency.
 
 ```bash
 git clone git@github.com:allain/example-hijak-js.git example
@@ -37,17 +37,28 @@ cd example
 
 Step 3 - Perform the hijack
 
+In this case the hijacked template offers esm module support, tree shaking of generated bundles, and jest out of the box.
+
 ```
 hijak git@github.com:allain/template-npm-project.git
 ```
 
 Step 4 - Profit
 
-The hijacked
 All of the hijacked npm run scripts are now available to you through the `hijak` tool.
 
+In this case
+
 ```bash
-hijak test -- --watchAll
+# to get a list of available npm run scripts
+hijak run
+
+# to run tests in watch mode and generate code coverage reports
+hijak test -- --watchAll --coverage
+
+# to run build in watch mode
 hijak run build -- --watch
+
+# to clean your project of any generate build artifacts
 hijak run clean
 ```
