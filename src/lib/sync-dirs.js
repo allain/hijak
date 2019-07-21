@@ -4,14 +4,20 @@ import path from "path"
 import sleep from "./sleep"
 import Debug from "debug"
 import { loadTextSync } from "./load-file"
+import globby from "globby"
 
 const debug = Debug("hijak:sync-dirs")
 
 export default function syncDirectories(srcPath, buildPath) {
+  const changes = []
+
   const gitIgnorePath = path.resolve(srcPath, ".gitignore")
-  let gitIgnored = []
+  let safeToDelete = path => false
   if (fs.pathExistsSync(gitIgnorePath)) {
-    gitIgnored = loadTextSync(gitIgnorePath).split(/[\r\n]+/g)
+    const ignorePatterns = loadTextSync(gitIgnorePath)
+      .split(/[\r\n]+/g)
+      .filter(Boolean)
+    safeToDelete = globby.gitignore.sync({ ignore: ignorePatterns })
   } else {
     console.warn(
       ".gitignore not found, hijak will ignore all deletions from build directory"
@@ -74,7 +80,7 @@ export default function syncDirectories(srcPath, buildPath) {
           await fs.mkdir(toPath)
           break
         case "unlink":
-          if (isSrcChange || matchesGitIgnored(fromPath)) {
+          if (isSrcChange || safeToDelete(path.relative(buildPath, fromPath))) {
             debug("removing file %s", toPath)
             await fs.remove(toPath)
           } else {
@@ -82,7 +88,7 @@ export default function syncDirectories(srcPath, buildPath) {
           }
           break
         case "unlinkDir":
-          if (isSrcChange || matchesGitIgnored(fromPath)) {
+          if (isSrcChange || safeToDelete(path.relative(buildPath, fromPath))) {
             debug("removing directory %s", toPath)
             if (await fs.pathExists(toPath)) {
               await fs.remove(toPath)
@@ -105,13 +111,5 @@ export default function syncDirectories(srcPath, buildPath) {
     // So we need to wait an amount of time before all changes are actually seen.
     debug("sleeping for a bit to allow all changes to settle")
     await sleep(250)
-  }
-
-  function matchesGitIgnored(toPath) {
-    const relativePath = path.relative(buildPath, toPath)
-    // naive matcher
-    return !!gitIgnored.some(
-      i => relativePath.includes(i) || relativePath + "/" === i
-    )
   }
 }
