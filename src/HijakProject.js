@@ -47,7 +47,7 @@ export default class HijakProject extends EventEmitter {
     return await loadJson(pkgJsonPath)
   }
 
-  async install(gitUrl) {
+  async hijack(gitUrl) {
     debug("adding hijack config into package.json")
     await this._updatePkg(pkg => ({ ...pkg, hijak: { repo: gitUrl } }))
 
@@ -59,7 +59,7 @@ export default class HijakProject extends EventEmitter {
     await this.prepare()
   }
 
-  async uninstall() {
+  async free() {
     if (fs.pathExists(this.buildPath)) {
       debug("removing %s", this.buildPath)
       await fs.remove(this.buildPath)

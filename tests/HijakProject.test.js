@@ -32,16 +32,16 @@ describe("HijakProject", () => {
     withTestProject(async projectDir => {
       const hp = new HijakProject(projectDir)
       expect(hp.installed).toBe(false)
-      await hp.install(TEST_GIT_URL)
+      await hp.hijack(TEST_GIT_URL)
       expect(hp.installed).toEqual(true)
-      await hp.uninstall()
+      await hp.free()
       expect(hp.installed).toEqual(false)
     }))
 
   it("supports running scripts", () =>
     withTestProject(async projectDir => {
       const hp = new HijakProject(projectDir)
-      await hp.install(TEST_GIT_URL)
+      await hp.hijack(TEST_GIT_URL)
 
       return expect(hp.npm(["run", "success"])).resolves.toBe(true)
     }))
@@ -49,7 +49,7 @@ describe("HijakProject", () => {
   it("running hijak run yields the expected npm run result", () =>
     withTestProject(async projectDir => {
       const hp = new HijakProject(projectDir)
-      await hp.install(TEST_GIT_URL)
+      await hp.hijack(TEST_GIT_URL)
 
       return expect(hp.npm(["run"])).resolves.toBe(true)
     }))
@@ -57,7 +57,7 @@ describe("HijakProject", () => {
   it("failing scripts reject to exit code", () =>
     withTestProject(async projectDir => {
       const hp = new HijakProject(projectDir)
-      await hp.install(TEST_GIT_URL)
+      await hp.hijack(TEST_GIT_URL)
 
       await expect(hp.npm(["run", "fail"])).rejects.toBe(1)
       await expect(hp.npm(["run", "fail-code", "2"])).rejects.toBe(2)
@@ -66,7 +66,7 @@ describe("HijakProject", () => {
   it("is lazy when setting up buildDir dependencies", () =>
     withTestProject(async projectDir => {
       const hp = new HijakProject(projectDir)
-      await hp.install(TEST_GIT_URL)
+      await hp.hijack(TEST_GIT_URL)
 
       await hp.npm(["run", "success"])
       const statFirst = fs.stat(
@@ -84,7 +84,7 @@ describe("HijakProject", () => {
   it("copies files from projectDir to buildDir", () =>
     withTestProject(async projectDir => {
       const hp = new HijakProject(projectDir)
-      await hp.install(TEST_GIT_URL)
+      await hp.hijack(TEST_GIT_URL)
 
       await hp.npm(["run", "cat-file-to-tmp"])
 
@@ -104,7 +104,7 @@ describe("HijakProject", () => {
       if (await fs.pathExists(typePath)) await fs.remove(typePath)
       expect(await fs.pathExists(typePath)).toBe(false)
 
-      await hp.install(TEST_GIT_URL)
+      await hp.hijack(TEST_GIT_URL)
 
       await hp.npm(["run", "success"])
 

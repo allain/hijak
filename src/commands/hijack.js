@@ -1,4 +1,4 @@
-export default async function install(hijakProject, args) {
+export default async function hijackCommand(hijakProject, args) {
   const gitUrl = args._[3]
 
   if (!gitUrl) throw new Error("a git url to hijack must be given")
@@ -8,6 +8,6 @@ export default async function install(hijakProject, args) {
 
   console.log("hijacking", gitUrl)
 
-  await hijakProject.install(gitUrl)
+  await hijakProject.hijack(gitUrl)
   return true
 }

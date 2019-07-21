@@ -22,9 +22,9 @@ export async function main(argv = process.argv) {
 
   let commandName = actualParams[0]
   if (commandName.match(/^git@/)) {
-    // Then the user is doing "hijak git@git..." so let's inject an "install" command
-    args._ = ["install", ...args._]
-    commandName = "install"
+    // Then the user is doing "hijak git@git..." so let's inject an "hijack" command
+    args._ = ["hijack", ...args._]
+    commandName = "hijack"
   }
 
   const projectDir = args.project
@@ -76,17 +76,13 @@ export function usage(args) {
             synopsis: "Displays information about a project's hijak config"
           },
           {
-            name: "install",
+            name: "hijack",
             synopsis:
               "Hijacks the given git repo as the build system for the current project."
           },
           {
-            name: "run",
-            synopsis: "Runs an npm script using the hijacked project."
-          },
-          {
-            name: "uninstall",
-            synopsis: "Removes the hijack of the target project."
+            name: "free",
+            synopsis: "Removes the hijak config from the project."
           }
         ]
       }

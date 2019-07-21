@@ -1,5 +1,5 @@
 import info from "./info"
-import install from "./install"
-import uninstall from "./uninstall"
+import hijack from "./hijack"
+import free from "./free"
 
-export default { info, install, uninstall }
+export default { info, hijack, free }
