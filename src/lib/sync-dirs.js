@@ -71,24 +71,24 @@ export default function syncDirectories(srcPath, buildPath) {
           if (await fs.pathExists(toPath)) {
             await fs.remove(toPath)
           }
-          fs.mkdir(toPath)
+          await fs.mkdir(toPath)
           break
         case "unlink":
-          if (isSrcChange || matchesGitIgnored(toPath)) {
-            debug("removing %s", toPath)
-            fs.remove(toPath)
+          if (isSrcChange || matchesGitIgnored(fromPath)) {
+            debug("removing file %s", toPath)
+            await fs.remove(toPath)
           } else {
-            console.warn("ignoring unsafe delete:", toPath)
+            console.warn("ignoring unsafe file deletion:", toPath)
           }
           break
         case "unlinkDir":
-          if (isSrcChange || matchesGitIgnored(toPath)) {
+          if (isSrcChange || matchesGitIgnored(fromPath)) {
             debug("removing directory %s", toPath)
             if (await fs.pathExists(toPath)) {
               await fs.remove(toPath)
-            } else {
-              console.warn("ignoring unsafe delete:", toPath)
             }
+          } else {
+            console.warn("ignoring unsafe directory deletion:", toPath)
           }
       }
     } catch (err) {
@@ -110,6 +110,8 @@ export default function syncDirectories(srcPath, buildPath) {
   function matchesGitIgnored(toPath) {
     const relativePath = path.relative(buildPath, toPath)
     // naive matcher
-    return gitIgnored.find(i => relativePath.includes(i))
+    return !!gitIgnored.some(
+      i => relativePath.includes(i) || relativePath + "/" === i
+    )
   }
 }
