@@ -3,7 +3,6 @@ import { loadJson, loadJsonSync, saveJson } from "./lib/load-file"
 import Debug from "debug"
 import fs from "fs-extra"
 import path from "path"
-import which from "./lib/which"
 import exec from "./lib/exec"
 import sleep from "./lib/sleep"
 import syncDirs from "./lib/sync-dirs"
@@ -124,8 +123,7 @@ export default class HijakProject extends EventEmitter {
   }
 
   async _createBuildDir(gitUrl) {
-    const gitBin = await which("git")
-    await exec(gitBin, ["clone", gitUrl, this.buildPath], {
+    await exec("git", ["clone", gitUrl, this.buildPath], {
       cwd: this.projectDir
     })
   }
