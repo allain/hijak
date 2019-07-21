@@ -6,6 +6,7 @@ import HijakProject from "../src/HijakProject"
 import withTestProject from "./fixtures/with-test-project"
 import exec from "../src/lib/exec"
 import sleep from "../src/lib/sleep"
+import which from "which"
 
 const TEST_GIT_URL = "git@github.com:allain/template-test.git"
 const TEST_GIT_DIR = path.resolve(__dirname, "fixtures", "template-test")
@@ -71,18 +72,32 @@ describe("HijakProject", () => {
 
   it.only("passes args through to underlying npm", () =>
     withTestProject(async projectDir => {
+      const hijakPath = await new Promise((resolve, reject) =>
+        which("hijak", (err, p) => (err ? reject(null) : resolve(p)))
+      )
+      if (!hijakPath) {
+        console.log("SKIPPING use of global hijak")
+        return
+      }
       const testPath = path.join(os.tmpdir(), "args")
 
       if (await fs.pathExists(testPath)) {
         await fs.remove(testPath)
       }
+
       const hp = new HijakProject(projectDir, { quiet: true })
       await hp.hijack(TEST_GIT_DIR)
 
-      await hp.npm(["run", "delegate-args", "--", "YO"])
+      await exec("npm", ["run", "delegate-args", "--", "YO"], {
+        cwd: projectDir
+      })
+
       expect((await loadText(testPath)).trim()).toEqual("YO")
 
-      await hp.npm(["run", "delegate-args", "HELLO"])
+      await exec("npm", ["run", "delegate-args", "HELLO"], {
+        cwd: projectDir
+      })
+
       expect((await loadText(testPath)).trim()).toEqual("HELLO")
     }))
 

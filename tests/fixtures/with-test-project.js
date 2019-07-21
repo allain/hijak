@@ -15,6 +15,9 @@ export default async function withTestProject(fn) {
     version: "0.1.0",
     dependencies: {
       "lodash.tolower": "^4.1.2"
+    },
+    scripts: {
+      "delegate-args": "hijak run delegate-args"
     }
   })
 
