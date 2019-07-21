@@ -70,7 +70,7 @@ describe("HijakProject", () => {
       return expect(hp.npm(["run", "success"])).resolves.toBeUndefined()
     }))
 
-  it.only("passes args through to underlying npm", () =>
+  it("passes args through to underlying npm", () =>
     withTestProject(async projectDir => {
       const hijakPath = await new Promise((resolve, reject) =>
         which("hijak", (err, p) => (err ? reject(null) : resolve(p)))

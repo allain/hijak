@@ -19,6 +19,10 @@ export async function loadText(filePath) {
   return await fs.readFile(filePath, "utf-8")
 }
 
+export function loadTextSync(filePath) {
+  return fs.readFileSync(filePath, "utf-8")
+}
+
 export async function saveText(filePath, content) {
   await fs.ensureDir(path.dirname(filePath))
   await fs.writeFile(filePath, content)

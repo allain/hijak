@@ -3,9 +3,21 @@ import fs from "fs-extra"
 import path from "path"
 import sleep from "./sleep"
 import Debug from "debug"
+import { loadTextSync } from "./load-file"
+
 const debug = Debug("hijak:sync-dirs")
 
 export default function syncDirectories(srcPath, buildPath) {
+  const gitIgnorePath = path.resolve(srcPath, ".gitignore")
+  let gitIgnored = []
+  if (fs.pathExistsSync(gitIgnorePath)) {
+    gitIgnored = loadTextSync(gitIgnorePath).split(/[\r\n]+/g)
+  } else {
+    console.warn(
+      ".gitignore not found, hijak will ignore all deletions from build directory"
+    )
+  }
+
   // used to keep infinite update loops from happening
   const lastChanges = {}
 
@@ -62,13 +74,21 @@ export default function syncDirectories(srcPath, buildPath) {
           fs.mkdir(toPath)
           break
         case "unlink":
-          debug("removing %s", toPath)
-          fs.remove(toPath)
+          if (isSrcChange || matchesGitIgnored(toPath)) {
+            debug("removing %s", toPath)
+            fs.remove(toPath)
+          } else {
+            console.warn("ignoring unsafe delete:", toPath)
+          }
           break
         case "unlinkDir":
-          debug("removing directory %s", toPath)
-          if (await fs.pathExists(toPath)) {
-            await fs.remove(toPath)
+          if (isSrcChange || matchesGitIgnored(toPath)) {
+            debug("removing directory %s", toPath)
+            if (await fs.pathExists(toPath)) {
+              await fs.remove(toPath)
+            } else {
+              console.warn("ignoring unsafe delete:", toPath)
+            }
           }
       }
     } catch (err) {
@@ -85,5 +105,11 @@ export default function syncDirectories(srcPath, buildPath) {
     // So we need to wait an amount of time before all changes are actually seen.
     debug("sleeping for a bit to allow all changes to settle")
     await sleep(250)
+  }
+
+  function matchesGitIgnored(toPath) {
+    const relativePath = path.relative(buildPath, toPath)
+    // naive matcher
+    return gitIgnored.find(i => relativePath.includes(i))
   }
 }
