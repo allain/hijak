@@ -1,4 +1,9 @@
+import Debug from "debug"
+
+const debug = Debug("hijak")
+
 export default function npmCommand(hijakProject, args, argv) {
+  debug("received raw args %o", argv)
   // I'm not sure what the right way ot handle -- is, but this feels right
   const rawArgs = argv.slice(2)
   if (!rawArgs.some(a => a === "--")) {
