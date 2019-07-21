@@ -3,12 +3,20 @@ import path from "path"
 import { loadText } from "../src/lib/load-file"
 import HijakProject from "../src/HijakProject"
 import withTestProject from "./fixtures/with-test-project"
+import exec from "../src/lib/exec"
 import sleep from "../src/lib/sleep"
 
 const TEST_GIT_URL = "git@github.com:allain/template-test.git"
+const TEST_GIT_DIR = path.resolve(__dirname, "fixtures", "template-test")
 
 describe("HijakProject", () => {
   // because part of the setup is to clone from github
+
+  beforeAll(async () => {
+    await exec("git", ["submodule", "init"])
+    await exec("git", ["submodule", "update"])
+  })
+
   jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
 
   it("can be created", () => {
@@ -28,20 +36,34 @@ describe("HijakProject", () => {
       expect(hp.buildPath).toMatch(/.*\/[.]hijak\/project-.*/)
     }))
 
-  it("supports install/uninstall", () =>
+  it("supports install/uninstall of git directories", () =>
     withTestProject(async projectDir => {
       const hp = new HijakProject(projectDir)
       expect(hp.installed).toBe(false)
-      await hp.hijack(TEST_GIT_URL)
+      await hp.hijack(TEST_GIT_DIR)
       expect(hp.installed).toEqual(true)
       await hp.free()
       expect(hp.installed).toEqual(false)
     }))
 
+  it(
+    "supports install/uninstall of gitURLs",
+    () =>
+      withTestProject(async projectDir => {
+        const hp = new HijakProject(projectDir)
+        expect(hp.installed).toBe(false)
+        await hp.hijack(TEST_GIT_URL)
+        expect(hp.installed).toEqual(true)
+        await hp.free()
+        expect(hp.installed).toEqual(false)
+      }),
+    60000
+  )
+
   it("supports running scripts", () =>
     withTestProject(async projectDir => {
       const hp = new HijakProject(projectDir)
-      await hp.hijack(TEST_GIT_URL)
+      await hp.hijack(TEST_GIT_DIR)
 
       return expect(hp.npm(["run", "success"])).resolves.toBe(true)
     }))
@@ -49,7 +71,7 @@ describe("HijakProject", () => {
   it("running hijak run yields the expected npm run result", () =>
     withTestProject(async projectDir => {
       const hp = new HijakProject(projectDir)
-      await hp.hijack(TEST_GIT_URL)
+      await hp.hijack(TEST_GIT_DIR)
 
       return expect(hp.npm(["run"])).resolves.toBe(true)
     }))
@@ -57,7 +79,7 @@ describe("HijakProject", () => {
   it("failing scripts reject to exit code", () =>
     withTestProject(async projectDir => {
       const hp = new HijakProject(projectDir)
-      await hp.hijack(TEST_GIT_URL)
+      await hp.hijack(TEST_GIT_DIR)
 
       await expect(hp.npm(["run", "fail"])).rejects.toBe(1)
       await expect(hp.npm(["run", "fail-code", "2"])).rejects.toBe(2)
@@ -66,7 +88,7 @@ describe("HijakProject", () => {
   it("is lazy when setting up buildDir dependencies", () =>
     withTestProject(async projectDir => {
       const hp = new HijakProject(projectDir)
-      await hp.hijack(TEST_GIT_URL)
+      await hp.hijack(TEST_GIT_DIR)
 
       await hp.npm(["run", "success"])
       const statFirst = fs.stat(
@@ -84,7 +106,7 @@ describe("HijakProject", () => {
   it("copies files from projectDir to buildDir", () =>
     withTestProject(async projectDir => {
       const hp = new HijakProject(projectDir)
-      await hp.hijack(TEST_GIT_URL)
+      await hp.hijack(TEST_GIT_DIR)
 
       await hp.npm(["run", "cat-file-to-tmp"])
 
@@ -104,7 +126,7 @@ describe("HijakProject", () => {
       if (await fs.pathExists(typePath)) await fs.remove(typePath)
       expect(await fs.pathExists(typePath)).toBe(false)
 
-      await hp.hijack(TEST_GIT_URL)
+      await hp.hijack(TEST_GIT_DIR)
 
       await hp.npm(["run", "success"])
 

@@ -1,13 +1,11 @@
 export default async function hijackCommand(hijakProject, args) {
-  const gitUrl = args._[3]
+  const repoSpec = args._[3]
 
-  if (!gitUrl) throw new Error("a git url to hijack must be given")
+  if (!repoSpec) throw new Error("a git url to hijack must be given")
 
-  if (!gitUrl.match(/^git@/))
-    throw new Error("only git targets are supported: " + gitUrl)
+  if (!repoSpec.match(/^git@/) && !repoSpec.match(/^[.]|\//g))
+    throw new Error("invalid git repo spec: " + repoSpec)
 
-  console.log("hijacking", gitUrl)
-
-  await hijakProject.hijack(gitUrl)
-  return true
+  console.log("hijacking", repoSpec)
+  await hijakProject.hijack(repoSpec)
 }
