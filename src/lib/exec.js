@@ -16,14 +16,14 @@ export default function exec(command, args, options = {}) {
   return new Promise((resolve, reject) => {
     debug("running", command, ...args, options)
 
-    if (command && !command.match(/^[.\/]/)) {
+    /*if (command && !command.match(/^[.\/]/)) {
       try {
         command = which(command)
       } catch (err) {
         reject(err)
         return
       }
-    }
+    }*/
 
     const c = childProcess.spawn(command, args, _options)
 

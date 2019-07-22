@@ -80,7 +80,7 @@ export default class HijakProject extends EventEmitter {
       path.basename(this.buildPath) + ".lock"
     )
 
-    const burden = new Burden(
+    const release = await Burden.bear(
       lockFilePath,
       () => syncDirs(process.cwd(), this.buildPath),
       () => this.prepare()
@@ -92,9 +92,9 @@ export default class HijakProject extends EventEmitter {
     })
 
     return childProcess.then(
-      () => burden.release(),
+      () => release(),
       async exitCode => {
-        await burden.release()
+        await release()
         throw exitCode
       }
     )

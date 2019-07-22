@@ -13,61 +13,64 @@ const TIMEOUT_INTERVAL = 5000
  * @param {string} lockFilePath - path to file to lock
  */
 export default class Burden {
-  constructor(lockFilePath, onAcquire, onAcquireFirst = null) {
-    this._lockFilePath = lockFilePath
-    this._onAcquire = onAcquire
-    this._onAcquireFirst = onAcquireFirst
-    this._lockPollId = null
-    this._onRelease = null
+  static bear(lockFilePath, onAcquire, onAcquireFirst) {
+    return new Promise(resolve => {
+      let lockPollId = null
+      let onRelease = null
 
-    this._tryAcquire()
-  }
+      async function tryAcquire(first = true) {
+        if (fs.pathExistsSync(lockFilePath)) {
+          if (
+            Date.now() - fs.statSync(lockFilePath).mtime.getTime() <
+            TIMEOUT_INTERVAL
+          ) {
+            resolve(release)
 
-  async _tryAcquire(first = true) {
-    if (fs.pathExistsSync(this._lockFilePath)) {
-      if (
-        Date.now() - fs.statSync(this._lockFilePath).mtime.getTime() <
-        TIMEOUT_INTERVAL
-      ) {
-        return sleep(CHECK_INTERVAL).then(
-          () => this._tryAcquire(false),
-          // sleep can reject when process.on('SIGINT', is received), say, from CTRL+C
-          () => false
-        )
-      } else {
-        debug("acquiring burden because lock was too old")
-        fs.removeSync(this._lockFilePath)
+            return sleep(CHECK_INTERVAL).then(
+              () => tryAcquire(false),
+              // sleep can reject when process.on('SIGINT', is received), say, from CTRL+C
+              () => false
+            )
+          } else {
+            debug("acquiring burden because lock was too old")
+            fs.removeSync(lockFilePath)
+          }
+        }
+
+        try {
+          if (first) {
+            debug("first to aquire burden %s", lockFilePath)
+            await onAcquireFirst()
+            resolve(release)
+          }
+          debug("aquiring burden %s", lockFilePath)
+          saveTextSync(lockFilePath, `${process.pid}`)
+          lockPollId = setInterval(
+            () => saveTextSync(lockFilePath, `${process.pid}`),
+            CHECK_INTERVAL
+          )
+          onRelease = await onAcquire()
+          process.on("SIGINT", () => onRelease())
+          resolve(release)
+        } catch (err) {
+          fs.removeSync(lockFilePath)
+          clearInterval(lockPollId)
+          lockPollId = null
+        }
       }
-    }
 
-    try {
-      if (first) {
-        debug("first to aquire burden %s", this._lockFilePath)
-        await this._onAcquireFirst()
+      tryAcquire()
+
+      async function release() {
+        if (onRelease) {
+          debug("releasing burden %s", lockFilePath)
+          await onRelease()
+          clearInterval(lockPollId)
+          fs.removeSync(lockFilePath)
+          clearInterval(lockPollId)
+          lockPollId = null
+        }
       }
-      debug("aquiring burden %s", this._lockFilePath)
-      saveTextSync(this._lockFilePath, `${process.pid}`)
-      this._lockPollId = setInterval(
-        () => saveTextSync(this._lockFilePath, `${process.pid}`),
-        CHECK_INTERVAL
-      )
-      this._onRelease = await this._onAcquire()
-      process.on("SIGINT", () => this.release())
-    } catch (err) {
-      fs.removeSync(this._lockFilePath)
-      clearInterval(this._lockPollId)
-      this._lockPollId = null
-    }
-  }
-
-  async release() {
-    if (this._onRelease) {
-      debug("releasing burden %s", this._lockFilePath)
-      await this._onRelease()
-      clearInterval(this._lockPollId)
-      fs.removeSync(this._lockFilePath)
-      clearInterval(this._lockPollId)
-      this._lockPollId = null
-    }
+    })
   }
 }
