@@ -1,6 +1,6 @@
 import childProcess from "child_process"
 import Debug from "debug"
-import which from './which'
+import which from "./which"
 
 const debug = Debug("hijak:exec")
 /**
@@ -13,12 +13,17 @@ const debug = Debug("hijak:exec")
 export default function exec(command, args, options = {}) {
   const { quiet, ..._options } = options
 
-  if (command && !command.match(/^[.\/]/) {
-    command = await which(command)
-  }
-
   return new Promise((resolve, reject) => {
     debug("running", command, ...args, options)
+
+    if (command && !command.match(/^[.\/]/)) {
+      try {
+        command = which(command)
+      } catch (err) {
+        reject(err)
+        return
+      }
+    }
 
     const c = childProcess.spawn(command, args, _options)
 
