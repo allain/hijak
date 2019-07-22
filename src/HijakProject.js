@@ -7,6 +7,7 @@ import exec from "./lib/exec"
 import syncDirs from "./lib/sync-dirs"
 import hashString from "./lib/hash-string"
 import { EventEmitter } from "events"
+import Burden from "./lib/Burden"
 
 const debug = Debug("hijak")
 
@@ -74,9 +75,16 @@ export default class HijakProject extends EventEmitter {
       throw new Error("project does not use hijak")
     }
 
-    await this.prepare()
+    const lockFilePath = path.join(
+      path.dirname(this.buildPath),
+      path.basename(this.buildPath) + ".lock"
+    )
 
-    const stopSync = await syncDirs(process.cwd(), this.buildPath)
+    const burden = new Burden(
+      lockFilePath,
+      () => syncDirs(process.cwd(), this.buildPath),
+      () => this.prepare()
+    )
 
     const childProcess = exec("npm", npmArgs, {
       cwd: this.buildPath,
@@ -84,9 +92,9 @@ export default class HijakProject extends EventEmitter {
     })
 
     return childProcess.then(
-      () => stopSync(),
+      () => burden.release(),
       async exitCode => {
-        await stopSync()
+        await burden.release()
         throw exitCode
       }
     )

@@ -27,3 +27,8 @@ export async function saveText(filePath, content) {
   await fs.ensureDir(path.dirname(filePath))
   await fs.writeFile(filePath, content)
 }
+
+export function saveTextSync(filePath, content) {
+  fs.ensureDirSync(path.dirname(filePath))
+  fs.writeFileSync(filePath, content)
+}

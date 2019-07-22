@@ -9,8 +9,6 @@ import globby from "globby"
 const debug = Debug("hijak:sync-dirs")
 
 export default async function syncDirectories(srcPath, buildPath) {
-  const changes = []
-
   const gitIgnorePath = path.resolve(srcPath, ".gitignore")
   let safeToDelete = path => false
   if (fs.pathExistsSync(gitIgnorePath)) {
@@ -121,11 +119,6 @@ export default async function syncDirectories(srcPath, buildPath) {
     debug("stopping directory watcher")
     watcher.close()
 
-    // The atomic: true option means there's a built-in 100ms delay before a file
-    // write (delete + write of some editors) is emitted as a change event.
-    // So we need to wait an amount of time before all changes are actually seen.
-    debug("sleeping for a bit to allow all changes to settle")
-    await processing // wait till all fs changes are processed
-    // await sleep(5000)
+    await processing
   }
 }
