@@ -1,10 +1,7 @@
-import os from "os"
-import path from "path"
 import fs from "fs-extra"
 import Debug from "debug"
 import sleep from "./sleep"
 import { saveTextSync } from "./load-file"
-import { tsConstructorType } from "@babel/types"
 
 const debug = Debug("hijak:lock")
 
