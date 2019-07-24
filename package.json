@@ -45,6 +45,7 @@
     "babel-jest": "^24.7.1",
     "collect-console": "^1.0.1",
     "concurrently": "^4.1.1",
+    "hasha": "^5.0.0",
     "jest": "^24.8.0",
     "rimraf": "^2.6.3",
     "rollup": "^1.17.0",

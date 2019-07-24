@@ -1,10 +1,10 @@
 import chokidar from "chokidar"
 import fs from "fs-extra"
 import path from "path"
-import sleep from "./sleep"
 import Debug from "debug"
 import { loadTextSync } from "./load-file"
 import globby from "globby"
+import hasha from "hasha"
 // import dirDiff from "./dir-diff"
 
 const debug = Debug("hijak:sync-dirs")
@@ -78,7 +78,11 @@ export default async function syncDirectories(srcPath, buildPath) {
         case "change":
           await fs.ensureDir(path.dirname(toPath))
           debug("updating src %s", toPath)
-          await fs.copyFile(fromPath, toPath)
+          const [fromHash, toHash] = await Promise.all([
+            hasha.fromFile(fromPath),
+            hasha.fromFile(toPath)
+          ])
+          if (fromHash !== toHash) await fs.copyFile(fromPath, toPath)
           break
         case "addDir":
           debug("adding directory %s", toPath)
