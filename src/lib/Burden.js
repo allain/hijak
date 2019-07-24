@@ -41,7 +41,6 @@ export default class Burden {
           if (first) {
             debug("first to aquire burden %s", lockFilePath)
             await onAcquireFirst()
-            resolve(release)
           }
           debug("aquiring burden %s", lockFilePath)
           saveTextSync(lockFilePath, `${process.pid}`)

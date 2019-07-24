@@ -92,7 +92,9 @@ export default class HijakProject extends EventEmitter {
     })
 
     return childProcess.then(
-      () => release(),
+      () => {
+        release()
+      },
       async exitCode => {
         await release()
         throw exitCode

@@ -5,6 +5,7 @@ import sleep from "./sleep"
 import Debug from "debug"
 import { loadTextSync } from "./load-file"
 import globby from "globby"
+// import dirDiff from "./dir-diff"
 
 const debug = Debug("hijak:sync-dirs")
 
@@ -117,8 +118,11 @@ export default async function syncDirectories(srcPath, buildPath) {
 
   return async () => {
     debug("stopping directory watcher")
+    // debug("sleeping 1000 ms to allow fs to sync")
+    // await sleep(1000)
     watcher.close()
-
     await processing
+
+    // dirDiff(buildPath, srcPath)
   }
 }
