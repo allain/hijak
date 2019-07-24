@@ -4,6 +4,8 @@ describe("exec", () => {
   it("resolves on success", async () =>
     expect(exec("echo", ["0"])).resolves.toEqual(0))
 
-  it("rejects on error", () =>
-    expect(exec("missing-command", [""])).rejects.toThrow())
+  it.skip("rejects on error", () => {
+    const result = exec("missing-command", [])
+    return expect(result).rejects.toThrow()
+  })
 })

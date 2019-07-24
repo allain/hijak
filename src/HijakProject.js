@@ -100,6 +100,15 @@ export default class HijakProject extends EventEmitter {
     )
   }
 
+  async update() {
+    // TODO: actually do a diff here
+    if (await fs.pathExists(this.buildPath)) {
+      await fs.remove(this.buildPath)
+    }
+
+    await this.prepare()
+  }
+
   async prepare() {
     if (!this.installed) throw new Error("project does not use hijack")
 

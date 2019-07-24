@@ -16,22 +16,14 @@ export default function exec(command, args, options = {}) {
   return new Promise((resolve, reject) => {
     debug("running", command, ...args, options)
 
-    /*if (command && !command.match(/^[.\/]/)) {
-      try {
-        command = which(command)
-      } catch (err) {
-        reject(err)
-        return
-      }
-    }*/
-
-    const c = childProcess.spawn(command, args, _options)
+    const c = childProcess.spawn(command, args, { ..._options, shell: true })
 
     if (!quiet) {
       // Just passthrough output to calling process
       c.stdout.pipe(process.stdout)
       c.stderr.pipe(process.stderr)
     }
+    process.stdin.pipe(c.stdin)
 
     c.on("error", err => reject(err))
     c.on("exit", code => (code ? reject : resolve)(code))

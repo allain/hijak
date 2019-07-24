@@ -87,6 +87,10 @@ export function usage(args) {
           {
             name: "free",
             synopsis: "Removes the hijak config from the project."
+          },
+          {
+            name: "update",
+            synopsis: "Reset the build and pulls anew from the hijacked repo."
           }
         ]
       }
