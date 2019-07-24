@@ -31,7 +31,7 @@ export default async function syncDirectories(srcPath, buildPath) {
     alwaysStat: true,
     atomic: true,
     ignoreInitial: true,
-    ignored: "node_modules",
+    ignored: ["node_modules", ".git"],
     persistent: false
   })
 
