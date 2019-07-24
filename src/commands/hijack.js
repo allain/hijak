@@ -1,3 +1,6 @@
+import fs from "fs-extra"
+import path from "path"
+
 export default async function hijackCommand(hijakProject, args) {
   const repoSpec = args._[3]
 
@@ -7,5 +10,9 @@ export default async function hijackCommand(hijakProject, args) {
     throw new Error("invalid git repo spec: " + repoSpec)
 
   console.log("hijacking", repoSpec)
+  await fs.ensureSymlink(
+    hijakProject.buildPath,
+    path.join(hijakProject.projectDir, ".hijak")
+  )
   await hijakProject.hijack(repoSpec)
 }
