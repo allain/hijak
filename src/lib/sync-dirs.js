@@ -2,6 +2,7 @@ import chokidar from "chokidar"
 import fs from "fs-extra"
 import path from "path"
 import Debug from "debug"
+import sleep from "./sleep"
 import { loadTextSync } from "./load-file"
 import globby from "globby"
 import hasha from "hasha"
@@ -30,8 +31,12 @@ export default async function syncDirectories(srcPath, buildPath) {
   const watcher = chokidar.watch([srcPath, buildPath], {
     alwaysStat: true,
     atomic: true,
+    awaitWriteFinish: {
+      pollInterval: 100,
+      stabilityThreshold: 500
+    },
     ignoreInitial: true,
-    ignored: ["node_modules", ".git"],
+    ignored: ["**/node_modules/**/*", "**/.git/**/"],
     persistent: false
   })
 
@@ -110,7 +115,7 @@ export default async function syncDirectories(srcPath, buildPath) {
           }
       }
     } catch (err) {
-      console.error(err.message)
+      console.error(err)
     }
   }
 
@@ -123,7 +128,7 @@ export default async function syncDirectories(srcPath, buildPath) {
   return async () => {
     debug("stopping directory watcher")
     // debug("sleeping 1000 ms to allow fs to sync")
-    // await sleep(1000)
+    await sleep(500)
     watcher.close()
     await processing
 
