@@ -18,9 +18,10 @@ export default function exec(command, args, options = {}) {
 
     let c = null
     if (quiet) {
-      c = childProcess.spawn(command, args, { ..._options, stdio: "inherit" })
-    } else {
       c = childProcess.spawn(command, args, { ..._options })
+      process.stdin.pipe(c.stdin)
+    } else {
+      c = childProcess.spawn(command, args, { ..._options, stdio: "inherit" })
     }
 
     c.on("error", err => reject(err))
