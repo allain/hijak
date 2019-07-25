@@ -22,8 +22,8 @@ describe("HijakProject", () => {
   jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
 
   it("can be created", () => {
-    const built = new HijakProject("/tmp", { quiet: true })
-    expect(new HijakProject("/tmp")).toBeInstanceOf(HijakProject)
+    const built = new HijakProject(os.tmpdir(), { quiet: true })
+    expect(new HijakProject(os.tmpdir())).toBeInstanceOf(HijakProject)
   })
 
   it("exposes installed prop", () =>
@@ -35,7 +35,7 @@ describe("HijakProject", () => {
   it("exposes buildPath", () =>
     withTestProject(projectDir => {
       const hp = new HijakProject(projectDir, { quiet: true })
-      expect(hp.buildPath).toMatch(/.*\/[.]hijak\/project-.*/)
+      expect(hp.buildPath).toMatch(/.*[\/\\][.]hijak[\/\\]project-.*/)
     }))
 
   it("supports install/uninstall of git directories", () =>
@@ -79,7 +79,7 @@ describe("HijakProject", () => {
         console.log("SKIPPING use of global hijak")
         return
       }
-      const testPath = path.join(os.tmpdir(), "args")
+      const testPath = path.join(os.tmpdir(), "ARGS")
 
       if (await fs.pathExists(testPath)) {
         await fs.remove(testPath)
@@ -109,7 +109,7 @@ describe("HijakProject", () => {
       return expect(hp.npm(["run"])).resolves.toBeUndefined()
     }))
 
-  it("failing scripts reject to exit code", () =>
+  it.only("failing scripts reject to exit code", () =>
     withTestProject(async projectDir => {
       const hp = new HijakProject(projectDir, { quiet: true })
       await hp.hijack(TEST_GIT_DIR)
@@ -143,7 +143,7 @@ describe("HijakProject", () => {
 
       await hp.npm(["run", "cat-file-to-tmp"])
 
-      await expect(await loadText("/tmp/FILE")).toEqual("REPLACED")
+      await expect(await loadText(path.join(os.tmpdir(), "FILE"))).toEqual("REPLACED")
     }))
 
   it("installs any @types/* dependencies from the buildDir into the projectDir", async () =>

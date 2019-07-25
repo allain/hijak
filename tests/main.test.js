@@ -13,7 +13,7 @@ describe("main", () => {
 
     expect(output).not.toHaveLength(0)
 
-    expect(output.join("\n")).toMatch(/usage(.|\n)*<command>/gim)
+    expect(output.join("\n")).toMatch(/usage(.|\r?\n)*<command>/gim)
   })
 
   it("displays usage message when run with --help and no command", async () => {

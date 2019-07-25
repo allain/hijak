@@ -36,7 +36,7 @@ export default async function syncDirectories(srcPath, buildPath) {
       stabilityThreshold: 500
     },
     ignoreInitial: true,
-    ignored: ["**/node_modules/**/*", "**/.git/**/"],
+    ignored: [path.join("**", "node_modules", "**", "*"), path.join("**", ".git", "**", "*")],
     persistent: false
   })
 
