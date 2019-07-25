@@ -36,7 +36,10 @@ export default async function syncDirectories(srcPath, buildPath) {
       stabilityThreshold: 500
     },
     ignoreInitial: true,
-    ignored: ["**/node_modules/**/*", "**/.git/**/"],
+    ignored: [
+      path.join("**", "node_modules", "**", "*"),
+      path.join("**", ".git", "**", "*")
+    ],
     persistent: false
   })
 
@@ -119,11 +122,14 @@ export default async function syncDirectories(srcPath, buildPath) {
     }
   }
 
+  debug("waiting for watcher to be ready")
   // Wait for watcher to be ready
   await new Promise((resolve, reject) => {
     watcher.once("ready", resolve)
     watcher.once("error", reject)
   })
+
+  debug("returning stopper")
 
   return async () => {
     debug("stopping directory watcher")
