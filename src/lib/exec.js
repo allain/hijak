@@ -21,13 +21,14 @@ export default function exec(cmd, args, options = {}) {
 
     let c = null
     if (quiet) {
-      c = childProcess.spawn(cmd, args, { ..._options })
-      process.stdin.pipe(c.stdin)
+      const result = childProcess.spawnSync(cmd, args, { ..._options })
+      result.status ? reject(result.status) : resolve(result.status)
     } else {
-      c = childProcess.spawn(cmd, args, { ..._options, stdio: "inherit" })
+      const result = childProcess.spawnSync(cmd, args, {
+        ..._options,
+        stdio: "inherit"
+      })
+      result.status ? reject(result.status) : resolve(result.status)
     }
-
-    c.on("error", err => reject(err))
-    c.on("exit", code => (code ? reject : resolve)(code))
   })
 }
