@@ -133,8 +133,8 @@ export default async function syncDirectories(srcPath, buildPath) {
 
   return async () => {
     debug("stopping directory watcher")
-    // debug("sleeping 1000 ms to allow fs to sync")
-    await sleep(500)
+    // Giving up to 1 second for changes to be added to the sync queue
+    await sleep(1000)
     watcher.close()
     await processing
 

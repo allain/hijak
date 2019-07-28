@@ -10,9 +10,9 @@ export default async function hijackCommand(hijakProject, args) {
     throw new Error("invalid git repo spec: " + repoSpec)
 
   console.log("hijacking", repoSpec)
+  await hijakProject.hijack(repoSpec)
   await fs.ensureSymlink(
     hijakProject.buildPath,
     path.join(hijakProject.projectDir, ".hijak")
   )
-  await hijakProject.hijack(repoSpec)
 }

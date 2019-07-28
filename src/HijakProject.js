@@ -94,7 +94,7 @@ export default class HijakProject extends EventEmitter {
     return childProcess.then(
       () => {
         debug("completed")
-        release()
+        return release()
       },
       async exitCode => {
         debug("completed with exit code %s", exitCode)
