@@ -86,23 +86,31 @@ export default async function syncDirectories(srcPath, buildPath) {
         case "change":
           await fs.ensureDir(path.dirname(toPath))
           debug("updating src %s", toPath)
-          const [fromHash, toHash] = await Promise.all([
-            hasha.fromFile(fromPath),
-            hasha.fromFile(toPath)
-          ])
-          if (fromHash !== toHash) await fs.copyFile(fromPath, toPath)
+          if (await fs.pathExists(toPath)) {
+            const [fromHash, toHash] = await Promise.all([
+              hasha.fromFile(fromPath),
+              hasha.fromFile(toPath)
+            ])
+            if (fromHash !== toHash) await fs.copyFile(fromPath, toPath)
+          } else {
+            await fs.ensureDir(path.dirname(toPath))
+            await fs.copyFile(fromPath, toPath)
+          }
+
           break
         case "addDir":
           debug("adding directory %s", toPath)
           if (!(await fs.pathExists(toPath))) {
             //await fs.remove(toPath)
-            await fs.mkdir(toPath)
+            await fs.mkdirp(toPath)
           }
           break
         case "unlink":
           if (isSrcChange || safeToDelete(path.relative(buildPath, fromPath))) {
             debug("removing file %s", toPath)
-            await fs.remove(toPath)
+            if (fs.pathExists(toPath)) {
+              await fs.remove(toPath)
+            }
           } else {
             console.warn("ignoring unsafe file deletion:", toPath)
           }
