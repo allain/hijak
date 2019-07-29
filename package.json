@@ -1,6 +1,6 @@
 {
   "name": "hijak",
-  "version": "0.2.23",
+  "version": "0.2.24",
   "bin": {
     "hj": "./bin/hijak",
     "hijak": "./bin/hijak"
