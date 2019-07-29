@@ -28,7 +28,6 @@
   "author": "Allain Lalonde <allain.lalonde@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^12.6.8",
     "ansi-colors": "^4.1.1",
     "chokidar": "^3.0.2",
     "command-line-usage": "^6.0.2",
@@ -42,6 +41,7 @@
   "devDependencies": {
     "@babel/core": "^7.4.3",
     "@babel/preset-env": "^7.4.3",
+    "@types/node": "^12.6.8",
     "@types/jest": "^24.0.15",
     "babel-jest": "^24.7.1",
     "collect-console": "^1.0.1",

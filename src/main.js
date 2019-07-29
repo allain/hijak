@@ -42,6 +42,18 @@ export default async function main(argv = process.argv) {
 
   const command = commands[commandName] || commands.npm
 
+  const pkg = loadJsonSync(path.resolve(__dirname, "..", "package.json"))
+
+  if (!args.quiet) {
+    console.log(
+      ansicolors.green("hijak"),
+      `v${pkg.version}`,
+      ansicolors.blue(hijakProject.gitUrl),
+      "in",
+      ansicolors.whiteBright(hijakProject.buildPath)
+    )
+  }
+
   const succeeded = await command(hijakProject, args, argv).then(
     () => true,
     err => {
