@@ -57,7 +57,7 @@ export default async function main(argv = process.argv) {
   const succeeded = await command(hijakProject, args, argv).then(
     () => true,
     err => {
-      console.error(ansicolors.bold.red("ERROR:"), err.message)
+      if (err.message) console.error(ansicolors.bold.red("ERROR:"), err.message)
       debug(err)
       return false
     }
@@ -68,7 +68,9 @@ export default async function main(argv = process.argv) {
 
 if (module.parent === null) {
   main().catch(err => {
-    console.error(err)
+    if (err) {
+      console.error(err)
+    }
   })
 }
 
