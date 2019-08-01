@@ -6,7 +6,6 @@ import usageBuilder from "command-line-usage"
 import commands from "./commands/index"
 import { loadJsonSync } from "./lib/load-file"
 import Debug from "debug"
-import { optionalCallExpression } from "@babel/types"
 
 const debug = Debug("hijak")
 
