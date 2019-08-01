@@ -27,6 +27,8 @@ export default async function syncDirectories(srcPath, buildPath) {
   // used to keep infinite update loops from happening
   const lastChanges = {}
 
+  const ignoredPathSegments = [".git", ".hijak", "node_modules"]
+
   // Start watching the build directory for things that the build is modifying and push them to the srcPath
   const watcher = chokidar.watch([srcPath, buildPath], {
     alwaysStat: true,
@@ -36,10 +38,14 @@ export default async function syncDirectories(srcPath, buildPath) {
       stabilityThreshold: 500
     },
     ignoreInitial: true,
-    ignored: [
-      path.join("**", "node_modules", "**", "*"),
-      path.join("**", ".git", "**", "*")
-    ],
+    ignored: p => {
+      const relativePath = p.startsWith(srcPath)
+        ? path.relative(srcPath, p)
+        : path.relative(buildPath, p)
+
+      const parts = relativePath.split(path.sep)
+      return ignoredPathSegments.some(pathPart => parts.includes(pathPart))
+    },
     persistent: false
   })
 
@@ -133,7 +139,7 @@ export default async function syncDirectories(srcPath, buildPath) {
   debug("waiting for watcher to be ready")
   // Wait for watcher to be ready
   await new Promise((resolve, reject) => {
-    watcher.once("ready", resolve)
+    watcher.once("ready", () => resolve())
     watcher.once("error", reject)
   })
 
