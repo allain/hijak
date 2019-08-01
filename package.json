@@ -25,6 +25,10 @@
     "dist",
     "bin"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/allain/hijak"
+  },
   "author": "Allain Lalonde <allain.lalonde@gmail.com>",
   "license": "ISC",
   "dependencies": {
