@@ -1,5 +1,11 @@
 import os from "os"
-import { loadJson, loadJsonSync, saveJson } from "./lib/load-file"
+import {
+  loadJson,
+  loadJsonSync,
+  saveJson,
+  loadText,
+  saveText
+} from "./lib/load-file"
 import Debug from "debug"
 import fs from "fs-extra"
 import path from "path"
@@ -8,6 +14,8 @@ import syncDirs from "./lib/sync-dirs"
 import hashString from "./lib/hash-string"
 import { EventEmitter } from "events"
 import Burden from "./lib/Burden"
+import readPkgUp from "read-pkg-up"
+import semver from "semver"
 
 const debug = Debug("hijak")
 
@@ -71,9 +79,7 @@ export default class HijakProject extends EventEmitter {
   }
 
   async npm(npmArgs) {
-    if (!this.installed) {
-      throw new Error("project does not use hijak")
-    }
+    if (!this.installed) throw new Error("project does not use hijak")
 
     const lockFilePath = path.join(
       path.dirname(this.buildPath),
@@ -113,8 +119,28 @@ export default class HijakProject extends EventEmitter {
     await this.prepare()
   }
 
+  async needsPrepare() {
+    const hashPath = this.buildPath + ".hash"
+    if (!(await fs.pathExists(hashPath))) return true
+
+    const oldHash = await loadText(hashPath)
+    const newHash = await this.computeHash()
+    return oldHash !== newHash
+  }
+
+  async computeHash() {
+    // uses the modification time of package.json as the hash forn own
+    const fstat = await fs.stat(path.resolve(this.projectDir, "package.json"))
+    return "" + fstat.mtimeMs
+  }
+
   async prepare() {
     if (!this.installed) throw new Error("project does not use hijack")
+
+    if (false && !this.needsPrepare()) {
+      debug("skipping unnecessary prepare")
+      return
+    }
 
     const pkg = await this._loadProjectPackage()
 
@@ -127,13 +153,18 @@ export default class HijakProject extends EventEmitter {
 
     const buildPkg = await loadJson(path.join(this.buildPath, "package.json"))
 
+    console.log("installing deps on buildDir")
     await this._installMissingDepsOnBuildDir(buildPkg)
 
     await this._patchBuildWithProject()
 
     await this._installTypePackagesToProject()
 
+    console.log("installing project deps on buildDir")
     await this._installMissingDepsOnBuildDir(pkg)
+
+    const hashPath = this.buildPath + ".hash"
+    await saveText(hashPath, this.computeHash())
   }
 
   async _createBuildDir(gitUrl) {
@@ -143,19 +174,28 @@ export default class HijakProject extends EventEmitter {
     })
   }
 
-  async _installMissingDepsOnBuildDir(pkg) {
-    const missingBuildDeps = Object.entries({
-      ...(pkg.dependencies || {}),
-      ...(pkg.devDependencies || {})
-    }).filter(
-      ([depName]) =>
-        !fs.pathExistsSync(path.join(this.buildPath, "node_modules", depName))
-    )
+  async _installMissingDeps(deps, targetPath) {
+    const missingDeps = deps.filter(([depName, versionSpec]) => {
+      const pkgPath = path.resolve(
+        targetPath,
+        "node_modules",
+        depName.split("/").join(path.sep),
+        "package.json"
+      )
+      if (!fs.pathExistsSync(pkgPath)) return true
 
-    if (missingBuildDeps.length) {
-      this.emit("info", "installing missing deps on build")
-      const depArgs = missingBuildDeps.map(
+      const pkg = loadJsonSync(pkgPath)
+
+      return !semver.satisfies(semver.clean(pkg.version), versionSpec)
+    })
+
+    if (missingDeps.length) {
+      const depArgs = missingDeps.map(
         ([depName, semver]) => `${depName}@${semver}`
+      )
+      this.emit(
+        "info",
+        `installing missing deps in ${targetPath}\n${depArgs.join(" ")}`
       )
       await exec(
         "npm",
@@ -163,15 +203,24 @@ export default class HijakProject extends EventEmitter {
           "install",
           "--prefer-offline",
           "--no-progress",
-          "--no-save",
+          // "--no-save",
           ...depArgs
         ],
         {
-          cwd: this.buildPath,
+          cwd: targetPath,
           quiet: this.options.quiet
         }
       )
     }
+  }
+
+  async _installMissingDepsOnBuildDir(pkg) {
+    const deps = Object.entries({
+      ...(pkg.dependencies || {}),
+      ...(pkg.devDependencies || {})
+    })
+
+    return this._installMissingDeps(deps, this.buildPath)
   }
 
   /**
@@ -185,32 +234,8 @@ export default class HijakProject extends EventEmitter {
     const typeDefs = Object.entries(buildPkg.devDependencies || {}).filter(
       ([name]) => name.match(/^@types\//)
     )
-    const missingTypeDefs = typeDefs.filter(([depName]) => {
-      return !fs.pathExistsSync(
-        path.join(this.projectDir, "node_modules", depName)
-      )
-    })
 
-    if (missingTypeDefs.length) {
-      this.emit("info", "installing type packages to project")
-      const depArgs = missingTypeDefs.map(
-        ([depName, semver]) => `${depName}@${semver}`
-      )
-      await exec(
-        "npm",
-        [
-          "install",
-          "--prefer-offline",
-          "--no-progress",
-          "--no-save",
-          ...depArgs
-        ],
-        {
-          cwd: this.projectDir,
-          quiet: this.options.quiet
-        }
-      )
-    }
+    return this._installMissingDeps(typeDefs, this.projectDir)
   }
 
   async _patchBuildWithProject() {
@@ -222,7 +247,7 @@ export default class HijakProject extends EventEmitter {
     for (const p of sourcePaths) {
       const srcPath = path.resolve(this.projectDir, p)
       const targetPath = path.resolve(this.buildPath, p)
-      debug(`copying %s to %s`, p, targetPath)
+      this.emit("info", `patching ${p}`)
       if (fs.pathExists(targetPath)) {
         await fs.remove(targetPath)
       }

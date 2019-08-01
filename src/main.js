@@ -6,6 +6,7 @@ import usageBuilder from "command-line-usage"
 import commands from "./commands/index"
 import { loadJsonSync } from "./lib/load-file"
 import Debug from "debug"
+import { optionalCallExpression } from "@babel/types"
 
 const debug = Debug("hijak")
 
@@ -45,6 +46,10 @@ export default async function main(argv = process.argv) {
   const pkg = loadJsonSync(path.resolve(__dirname, "..", "package.json"))
 
   if (!args.quiet) {
+    hijakProject.on("info", (...args) => {
+      console.log(ansicolors.green("info"), ...args)
+    })
+
     console.log(
       ansicolors.green("hijak"),
       `v${pkg.version}`,
