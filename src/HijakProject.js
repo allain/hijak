@@ -153,14 +153,12 @@ export default class HijakProject extends EventEmitter {
 
     const buildPkg = await loadJson(path.join(this.buildPath, "package.json"))
 
-    console.log("installing deps on buildDir")
     await this._installMissingDepsOnBuildDir(buildPkg)
 
     await this._patchBuildWithProject()
 
     await this._installTypePackagesToProject()
 
-    console.log("installing project deps on buildDir")
     await this._installMissingDepsOnBuildDir(pkg)
 
     const hashPath = this.buildPath + ".hash"

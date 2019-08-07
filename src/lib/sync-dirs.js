@@ -1,17 +1,17 @@
-import chokidar from "chokidar"
-import fs from "fs-extra"
-import path from "path"
-import Debug from "debug"
-import sleep from "./sleep"
-import { loadTextSync } from "./load-file"
-import globby from "globby"
-import hasha from "hasha"
+import chokidar from 'chokidar'
+import fs from 'fs-extra'
+import path from 'path'
+import Debug from 'debug'
+import sleep from './sleep'
+import { loadTextSync } from './load-file'
+import globby from 'globby'
+import hasha from 'hasha'
 // import dirDiff from "./dir-diff"
 
-const debug = Debug("hijak:sync-dirs")
+const debug = Debug('hijak:sync-dirs')
 
-export default async function syncDirectories(srcPath, buildPath) {
-  const gitIgnorePath = path.resolve(srcPath, ".gitignore")
+export default async function syncDirectories (srcPath, buildPath) {
+  const gitIgnorePath = path.resolve(srcPath, '.gitignore')
   let safeToDelete = path => false
   if (fs.pathExistsSync(gitIgnorePath)) {
     const ignorePatterns = loadTextSync(gitIgnorePath)
@@ -20,14 +20,14 @@ export default async function syncDirectories(srcPath, buildPath) {
     safeToDelete = globby.gitignore.sync({ ignore: ignorePatterns })
   } else {
     console.warn(
-      ".gitignore not found, hijak will ignore all deletions from build directory"
+      '.gitignore not found, hijak will ignore all deletions from build directory'
     )
   }
 
   // used to keep infinite update loops from happening
   const lastChanges = {}
 
-  const ignoredPathSegments = [".git", ".hijak", "node_modules"]
+  const ignoredPathSegments = ['.git', '.hijak', 'node_modules']
 
   // Start watching the build directory for things that the build is modifying and push them to the srcPath
   const watcher = chokidar.watch([srcPath, buildPath], {
@@ -51,14 +51,16 @@ export default async function syncDirectories(srcPath, buildPath) {
 
   let processing = Promise.resolve()
 
-  watcher.on("all", (event, fromPath) => {
-    processing = processing.then(() => process(event, fromPath))
-  })
+  watcher.on(
+    'all',
+    (event, fromPath) =>
+      (processing = processing.then(() => process(event, fromPath)))
+  )
 
-  debug("watching %s <=> %s", srcPath, buildPath)
+  debug('watching %s <=> %s', srcPath, buildPath)
 
-  async function process(event, fromPath) {
-    debug("fs change", event, fromPath)
+  async function process (event, fromPath) {
+    debug('fs change', event, fromPath)
     const isSrcChange = !fromPath.startsWith(buildPath)
     const relativePath = path.relative(
       isSrcChange ? srcPath : buildPath,
@@ -78,20 +80,20 @@ export default async function syncDirectories(srcPath, buildPath) {
       now - lastFromChange < 100 &&
       now - lastToChange < 100
     ) {
-      debug("bailing on cyclic propagation %s => %s", fromPath, toPath)
+      debug('bailing on cyclic propagation %s => %s', fromPath, toPath)
       return
     }
 
     try {
       switch (event) {
-        case "add":
-          debug("creating %s", toPath)
+        case 'add':
+          debug('creating %s', toPath)
           await fs.ensureDir(path.dirname(toPath))
           await fs.copyFile(fromPath, toPath)
           break
-        case "change":
+        case 'change':
           await fs.ensureDir(path.dirname(toPath))
-          debug("updating src %s", toPath)
+          debug('updating src %s', toPath)
           if (await fs.pathExists(toPath)) {
             const [fromHash, toHash] = await Promise.all([
               hasha.fromFile(fromPath),
@@ -104,31 +106,31 @@ export default async function syncDirectories(srcPath, buildPath) {
           }
 
           break
-        case "addDir":
-          debug("adding directory %s", toPath)
+        case 'addDir':
+          debug('adding directory %s', toPath)
           if (!(await fs.pathExists(toPath))) {
-            //await fs.remove(toPath)
+            // await fs.remove(toPath)
             await fs.mkdirp(toPath)
           }
           break
-        case "unlink":
+        case 'unlink':
           if (isSrcChange || safeToDelete(path.relative(buildPath, fromPath))) {
-            debug("removing file %s", toPath)
+            debug('removing file %s', toPath)
             if (fs.pathExists(toPath)) {
               await fs.remove(toPath)
             }
           } else {
-            console.warn("ignoring unsafe file deletion:", toPath)
+            console.warn('ignoring unsafe file deletion:', toPath)
           }
           break
-        case "unlinkDir":
+        case 'unlinkDir':
           if (isSrcChange || safeToDelete(path.relative(buildPath, fromPath))) {
-            debug("removing directory %s", toPath)
+            debug('removing directory %s', toPath)
             if (await fs.pathExists(toPath)) {
               await fs.remove(toPath)
             }
           } else {
-            console.warn("ignoring unsafe directory deletion:", toPath)
+            console.warn('ignoring unsafe directory deletion:', toPath)
           }
       }
     } catch (err) {
@@ -136,17 +138,17 @@ export default async function syncDirectories(srcPath, buildPath) {
     }
   }
 
-  debug("waiting for watcher to be ready")
+  debug('waiting for watcher to be ready')
   // Wait for watcher to be ready
   await new Promise((resolve, reject) => {
-    watcher.once("ready", () => resolve())
-    watcher.once("error", reject)
+    watcher.once('ready', () => resolve())
+    watcher.once('error', reject)
   })
 
-  debug("returning stopper")
+  debug('returning stopper')
 
   return async () => {
-    debug("stopping directory watcher")
+    debug('stopping directory watcher')
     // Giving up to 1 second for changes to be added to the sync queue
     await sleep(1000)
     watcher.close()
