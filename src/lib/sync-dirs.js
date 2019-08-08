@@ -149,11 +149,14 @@ export default async function syncDirectories (srcPath, buildPath) {
 
   return async () => {
     debug('stopping directory watcher')
-    // Giving up to 1 second for changes to be added to the sync queue
-    await sleep(1000)
+
+    await sleep(2000)
     watcher.close()
     await processing
 
+    debug('done processing fs change queue')
+
+    // TODO: Failsafe copy of all changed files from build dir to project dir
     // dirDiff(buildPath, srcPath)
   }
 }

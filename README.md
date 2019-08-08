@@ -40,7 +40,7 @@ Step 3 - Perform the hijack
 In this case the hijacked template offers esm module support, tree shaking of generated bundles, and jest out of the box.
 
 ```
-hijak git@github.com:allain/template-npm-project.git
+hijak git@github.com:allain/template-nodejs-project.git
 ```
 
 Step 4 - Profit
