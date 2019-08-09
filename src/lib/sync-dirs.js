@@ -49,18 +49,18 @@ export default async function syncDirectories (srcPath, buildPath) {
     persistent: false
   })
 
+  let lastChange = Date.now()
+
   let processing = Promise.resolve()
 
-  watcher.on(
-    'all',
-    (event, fromPath) =>
-      (processing = processing.then(() => process(event, fromPath)))
-  )
+  watcher.on('all', (event, fromPath) => {
+    lastChange = Date.now()
+    processing = processing.then(() => process(event, fromPath))
+  })
 
   debug('watching %s <=> %s', srcPath, buildPath)
 
   async function process (event, fromPath) {
-    debug('fs change', event, fromPath)
     const isSrcChange = !fromPath.startsWith(buildPath)
     const relativePath = path.relative(
       isSrcChange ? srcPath : buildPath,
@@ -87,20 +87,35 @@ export default async function syncDirectories (srcPath, buildPath) {
     try {
       switch (event) {
         case 'add':
-          debug('creating %s', toPath)
-          await fs.ensureDir(path.dirname(toPath))
-          await fs.copyFile(fromPath, toPath)
-          break
         case 'change':
           await fs.ensureDir(path.dirname(toPath))
-          debug('updating src %s', toPath)
           if (await fs.pathExists(toPath)) {
-            const [fromHash, toHash] = await Promise.all([
-              hasha.fromFile(fromPath),
-              hasha.fromFile(toPath)
-            ])
-            if (fromHash !== toHash) await fs.copyFile(fromPath, toPath)
+            const fromStat = fs.statSync(fromPath)
+            const toStat = fs.statSync(toPath)
+            if (fromStat.size !== toStat.size) {
+              debug(
+                'updating because size is different %d %d',
+                fromStat.size,
+                toStat.size
+              )
+              await fs.copyFile(fromPath, toPath)
+            } else {
+              const [fromHash, toHash] = await Promise.all([
+                hasha.fromFile(fromPath),
+                hasha.fromFile(toPath)
+              ])
+
+              if (fromHash !== toHash) {
+                debug(
+                  'updating because hash is different %s %s',
+                  fromHash,
+                  toHash
+                )
+                await fs.copyFile(fromPath, toPath)
+              }
+            }
           } else {
+            debug('creating src %s', toPath)
             await fs.ensureDir(path.dirname(toPath))
             await fs.copyFile(fromPath, toPath)
           }
@@ -150,10 +165,27 @@ export default async function syncDirectories (srcPath, buildPath) {
   return async () => {
     debug('stopping directory watcher')
 
-    await sleep(2000)
-    watcher.close()
-    await processing
+    await Promise.race([
+      new Promise(resolve => {
+        const waitForQuietFsId = setInterval(() => {
+          debug('fs still active')
+          if (Date.now() - lastChange > 1000) {
+            clearInterval(waitForQuietFsId)
+            resolve()
+          }
+        }, 250)
+      }),
+      sleep(10000).catch(err => {
+        console.error(
+          'timedout waiting for filesytstem to quiet, terminating anyhow'
+        )
+      })
+    ])
 
+    watcher.close()
+    debug('fs inactive')
+
+    await processing
     debug('done processing fs change queue')
 
     // TODO: Failsafe copy of all changed files from build dir to project dir
