@@ -126,7 +126,7 @@ export default class HijakProject extends EventEmitter {
   async computeHash() {
     // uses the modification time of package.json as the hash forn own
     const fstat = await fs.stat(path.resolve(this.projectDir, 'package.json'))
-    return '' + fstat.mtimeMs
+    return '' + Math.floor(fstat.mtimeMs)
   }
 
   async prepare() {
@@ -157,7 +157,7 @@ export default class HijakProject extends EventEmitter {
     await this._installMissingDepsOnBuildDir(pkg)
 
     const hashPath = this.buildPath + '.hash'
-    await saveText(hashPath, this.computeHash())
+    await saveText(hashPath, await this.computeHash())
   }
 
   async _createBuildDir(gitUrl) {
@@ -165,6 +165,9 @@ export default class HijakProject extends EventEmitter {
       cwd: this.projectDir,
       quiet: this.options.quiet
     })
+
+    // Remove .git directory within build path
+    await fs.remove(path.join(this.buildPath, '.git'))
   }
 
   async _installMissingDeps(deps, targetPath) {
