@@ -35,7 +35,7 @@ describe('HijakProject', () => {
   it('exposes buildPath', () =>
     withTestProject(projectDir => {
       const hp = new HijakProject(projectDir, { quiet: true })
-      expect(hp.buildPath).toMatch(/.*[\/\\][.]hijak[\/\\]project-.*/)
+      expect(hp.buildPath).toEqual(path.join(projectDir, '.hijak'))
     }))
 
   it('supports install/uninstall of git directories', () =>

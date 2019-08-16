@@ -11,8 +11,4 @@ export default async function hijackCommand(hijakProject, args) {
 
   console.log("hijacking", repoSpec)
   await hijakProject.hijack(repoSpec)
-  await fs.ensureSymlink(
-    hijakProject.buildPath,
-    path.join(hijakProject.projectDir, ".hijak")
-  )
 }

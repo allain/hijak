@@ -19,42 +19,38 @@ import semver from 'semver'
 const debug = Debug('hijak')
 
 export default class HijakProject extends EventEmitter {
-  constructor (projectDir, options = {}) {
+  constructor(projectDir, options = {}) {
     super()
     this.projectDir = projectDir
     this.options = options
   }
 
-  get installed () {
+  get installed() {
     return !!loadJsonSync(path.join(this.projectDir, 'package.json')).hijak
   }
 
-  get gitUrl () {
+  get gitUrl() {
     const hijak = loadJsonSync(path.join(this.projectDir, 'package.json')).hijak
     return hijak ? hijak.repo : null
   }
 
-  get buildPath () {
-    return path.join(
-      os.homedir(),
-      '.hijak',
-      `project-${hashString(this.projectDir)}`
-    )
+  get buildPath() {
+    return path.join(this.projectDir, '.hijak')
   }
 
-  async _updatePkg (fn) {
+  async _updatePkg(fn) {
     const pkgJsonPath = path.resolve(this.projectDir, 'package.json')
     const pkg = await loadJson(pkgJsonPath)
     const newPkg = fn(pkg) || pkg
     await saveJson(pkgJsonPath, newPkg)
   }
 
-  async _loadProjectPackage () {
+  async _loadProjectPackage() {
     const pkgJsonPath = path.resolve(this.projectDir, 'package.json')
     return await loadJson(pkgJsonPath)
   }
 
-  async hijack (gitUrl) {
+  async hijack(gitUrl) {
     debug('adding hijack config into package.json')
     await this._updatePkg(pkg => ({ ...pkg, hijak: { repo: gitUrl } }))
 
@@ -66,7 +62,7 @@ export default class HijakProject extends EventEmitter {
     await this.prepare()
   }
 
-  async free () {
+  async free() {
     if (fs.pathExists(this.buildPath)) {
       debug('removing %s', this.buildPath)
       await fs.remove(this.buildPath)
@@ -77,7 +73,7 @@ export default class HijakProject extends EventEmitter {
     })
   }
 
-  async npm (npmArgs) {
+  async npm(npmArgs) {
     if (!this.installed) throw new Error('project does not use hijak')
 
     const lockFilePath = path.join(
@@ -109,7 +105,7 @@ export default class HijakProject extends EventEmitter {
     )
   }
 
-  async update () {
+  async update() {
     // TODO: actually do a diff here
     if (await fs.pathExists(this.buildPath)) {
       await fs.remove(this.buildPath)
@@ -118,7 +114,7 @@ export default class HijakProject extends EventEmitter {
     await this.prepare()
   }
 
-  async needsPrepare () {
+  async needsPrepare() {
     const hashPath = this.buildPath + '.hash'
     if (!(await fs.pathExists(hashPath))) return true
 
@@ -127,13 +123,13 @@ export default class HijakProject extends EventEmitter {
     return oldHash !== newHash
   }
 
-  async computeHash () {
+  async computeHash() {
     // uses the modification time of package.json as the hash forn own
     const fstat = await fs.stat(path.resolve(this.projectDir, 'package.json'))
     return '' + fstat.mtimeMs
   }
 
-  async prepare () {
+  async prepare() {
     if (!this.installed) throw new Error('project does not use hijack')
 
     if (false && !this.needsPrepare()) {
@@ -164,14 +160,14 @@ export default class HijakProject extends EventEmitter {
     await saveText(hashPath, this.computeHash())
   }
 
-  async _createBuildDir (gitUrl) {
+  async _createBuildDir(gitUrl) {
     await exec('git', ['clone', gitUrl, this.buildPath], {
       cwd: this.projectDir,
       quiet: this.options.quiet
     })
   }
 
-  async _installMissingDeps (deps, targetPath) {
+  async _installMissingDeps(deps, targetPath) {
     const missingDeps = deps.filter(([depName, versionSpec]) => {
       const pkgPath = path.resolve(
         targetPath,
@@ -211,7 +207,7 @@ export default class HijakProject extends EventEmitter {
     }
   }
 
-  async _installMissingDepsOnBuildDir (pkg) {
+  async _installMissingDepsOnBuildDir(pkg) {
     const deps = Object.entries({
       ...(pkg.dependencies || {}),
       ...(pkg.devDependencies || {})
@@ -224,7 +220,7 @@ export default class HijakProject extends EventEmitter {
    * Even though the project dir won't have build dirs installs it could conceivably use them anyhow (like with jest).
    * Installing their @types/* specs makes development better, especially in vscode.
    */
-  async _installTypePackagesToProject () {
+  async _installTypePackagesToProject() {
     const buildPkg = await loadJson(
       path.resolve(this.buildPath, 'package.json')
     )
@@ -235,7 +231,7 @@ export default class HijakProject extends EventEmitter {
     return this._installMissingDeps(typeDefs, this.projectDir)
   }
 
-  async _patchBuildWithProject () {
+  async _patchBuildWithProject() {
     this.emit('info', 'patching build with project')
     const ignoredRegex = /^(node_modules|package.json|package-lock.json|[.].*)$/
     const sourcePaths = (await fs.readdir(this.projectDir)).filter(
