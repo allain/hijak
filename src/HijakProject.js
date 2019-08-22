@@ -51,18 +51,16 @@ export default class HijakProject extends EventEmitter {
   }
 
   async hijack(gitUrl) {
+    await this.free()
+
     debug('adding hijack config into package.json')
     await this._updatePkg(pkg => ({ ...pkg, hijak: { repo: gitUrl } }))
-
-    if (fs.pathExists(this.buildPath)) {
-      debug('removing %s', this.buildPath)
-      await fs.remove(this.buildPath)
-    }
 
     await this.prepare()
   }
 
   async free() {
+    // FIX: This won't work for submodules since removing them isn't this simple.
     if (fs.pathExists(this.buildPath)) {
       debug('removing %s', this.buildPath)
       await fs.remove(this.buildPath)
@@ -106,9 +104,11 @@ export default class HijakProject extends EventEmitter {
   }
 
   async update() {
-    // TODO: actually do a diff here
+    // This works for both git cloned and git submodules
     if (await fs.pathExists(this.buildPath)) {
-      await fs.remove(this.buildPath)
+      await exec('git', ['reset', '--hard'], {cwd: this.buildPath})
+      await exec('git', ['clean', '-f'], {cwd: this.buildPath})
+      await fs.remove(this.buildPath + '.hash')
     }
 
     await this.prepare()
@@ -132,7 +132,7 @@ export default class HijakProject extends EventEmitter {
   async prepare() {
     if (!this.installed) throw new Error('project does not use hijack')
 
-    if (false && !this.needsPrepare()) {
+    if (!this.needsPrepare()) {
       debug('skipping unnecessary prepare')
       return
     }
@@ -143,7 +143,7 @@ export default class HijakProject extends EventEmitter {
 
     await fs.ensureDir(path.resolve(this.projectDir, 'node_modules'))
     if (!(await fs.pathExists(this.buildPath))) {
-      await this._createBuildDir(gitUrl)
+      await this._createBuildByCloning(gitUrl)
     }
 
     const buildPkg = await loadJson(path.join(this.buildPath, 'package.json'))
@@ -160,14 +160,12 @@ export default class HijakProject extends EventEmitter {
     await saveText(hashPath, await this.computeHash())
   }
 
-  async _createBuildDir(gitUrl) {
-    await exec('git', ['clone', gitUrl, this.buildPath], {
+  async _createBuildByCloning(gitUrl) {
+    // git status
+    await exec('git', ['clone', '--origin', 'hijacked',  gitUrl, this.buildPath], {
       cwd: this.projectDir,
       quiet: this.options.quiet
     })
-
-    // Remove .git directory within build path
-    await fs.remove(path.join(this.buildPath, '.git'))
   }
 
   async _installMissingDeps(deps, targetPath) {
